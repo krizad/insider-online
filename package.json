@@ -8,7 +8,8 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "db:push": "pnpm -F @repo/database db:push",
-    "db:studio": "pnpm -F @repo/database db:studio"
+    "db:studio": "pnpm -F @repo/database db:studio",
+    "start": "turbo run start"
   },
   "devDependencies": {
     "prettier": "^3.2.5",
