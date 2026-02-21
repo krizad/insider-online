@@ -36,7 +36,8 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   connect: () => {
     if (get().socket) return;
-    const socket = io('http://localhost:3001');
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const socket = io(apiUrl);
 
     socket.on('connect', () => {
       set({ connected: true, socket, socketId: socket.id });
