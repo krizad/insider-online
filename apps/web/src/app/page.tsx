@@ -73,6 +73,9 @@ function GameLobby() {
           </div>
           <div className="w-full max-w-md p-6 sm:p-8 bg-slate-900 border border-indigo-500/30 rounded-3xl shadow-2xl relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
+            <div className="flex justify-center mb-4 mt-2">
+              <img src="/icon.png" alt="WHO KNOW? Logo" className="w-20 h-20 rounded-2xl shadow-lg shadow-indigo-500/20 border border-slate-700" />
+            </div>
             <h1 className="text-3xl sm:text-4xl font-black text-center mb-2 tracking-tighter text-white">
               You've been invited!
             </h1>
@@ -127,6 +130,9 @@ function GameLobby() {
           <RulesModal />
         </div>
         <div className="w-full max-w-md p-6 sm:p-8 bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl">
+          <div className="flex justify-center mb-6">
+            <img src="/icon.png" alt="WHO KNOW? Logo" className="w-24 h-24 sm:w-28 sm:h-28 rounded-[2rem] shadow-2xl shadow-indigo-500/20 border border-slate-700" />
+          </div>
           <h1 className="text-4xl sm:text-5xl font-black text-center mb-8 tracking-tighter bg-gradient-to-br from-indigo-400 to-purple-500 bg-clip-text text-transparent">
             WHO KNOW?
           </h1>
@@ -191,6 +197,7 @@ function GameLobby() {
         {/* Header */}
         <header className="flex-none flex items-center justify-between gap-4 p-2 sm:p-4 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl z-10 w-full">
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap sm:flex-nowrap w-full">
+            <img src="/icon.png" alt="Logo" className="w-8 h-8 rounded-lg shadow-sm border border-slate-700" />
             <span className="text-xs font-medium text-slate-500 hidden sm:block">Room</span>
             <span className="text-xl sm:text-2xl font-black font-mono tracking-widest text-indigo-400 leading-none">{room.code}</span>
             <button 
