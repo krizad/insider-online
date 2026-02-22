@@ -34,7 +34,7 @@ export function RulesModal() {
             <div className="p-6 overflow-y-auto space-y-8 text-slate-300 bg-slate-900/50">
               <div>
                 <h3 className="text-indigo-400 font-black uppercase tracking-wider text-sm mb-3">The Setup</h3>
-                <p className="leading-relaxed">WHO-KNOW is a game of deduction and deception. One player is the <strong className="text-amber-500">Game Host</strong>, one is the secret <strong className="text-rose-400">Insider (Know)</strong>, and the rest are <strong className="text-slate-100">Commoners (Unknow)</strong>.</p>
+                <p className="leading-relaxed">"WHO KNOW?" is a game of deduction and deception. One player is the <strong className="text-amber-500">Game Host</strong>, one is the secret <strong className="text-rose-400">Insider (Know)</strong>, and the rest are <strong className="text-slate-100">Commoners (Unknow)</strong>.</p>
               </div>
 
               <div>

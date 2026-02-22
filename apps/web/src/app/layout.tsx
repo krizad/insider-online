@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'WHO-KNOW Insider',
+  title: 'WHO KNOW?',
   description: 'Real-time Insider Game Controller',
 };
 
