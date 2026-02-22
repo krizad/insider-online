@@ -28,7 +28,10 @@ export class GamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   handleDisconnect(client: Socket) {
     console.log(`Client disconnected: ${client.id}`);
-    // Handle player disconnect logic here if needed
+    const room = this.gamesService.leaveRoom(client.id);
+    if (room) {
+      this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+    }
   }
 
   @SubscribeMessage('create_room')

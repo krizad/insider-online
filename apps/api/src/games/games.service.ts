@@ -41,6 +41,28 @@ export class GamesService {
     return room;
   }
 
+  leaveRoom(clientId: string): RoomState | null {
+    for (const [code, room] of this.rooms.entries()) {
+      const playerIndex = room.players.findIndex(p => p.socketId === clientId);
+      if (playerIndex !== -1) {
+        room.players.splice(playerIndex, 1);
+        
+        if (room.players.length === 0) {
+          this.rooms.delete(code);
+          return null;
+        }
+
+        if (room.roomHostId === clientId) {
+          room.roomHostId = room.players[0].socketId;
+        }
+
+        this.rooms.set(code, room);
+        return room;
+      }
+    }
+    return null;
+  }
+
   getRoom(code: string): RoomState | undefined {
     return this.rooms.get(code);
   }
