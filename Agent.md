@@ -2,6 +2,8 @@
 
 **"Who knows the secret? Who's acting sus?"** โปรเจกต์เว็บแอปสำหรับคุมเกม Insider (Board Game) ที่เน้นความ Minimalist และ Real-time Experience สูงสุด พัฒนาด้วยสถาปัตยกรรม Monorepo
 
+**Live Demo:** [who-know-web.vercel.app](https://who-know-web.vercel.app/)
+
 ## 🛠 Tech Stack
 
 - **Monorepo:** `Turborepo` + `pnpm`
@@ -14,7 +16,7 @@
 
 ## 🏗 Project Structure
 
-```
+```text
 who-know/
 ├── apps/
 │   ├── web/                # Next.js Frontend (The Player's Screen)
@@ -111,6 +113,7 @@ async handleStartGame(@MessageBody() data: { roomId: string }) {
 ---
 
 ## 🚀 Future Roadmap
+
 - [ ] **Custom Game Rules:** ปรับเวลาถาม หรือจำนวน Insider ได้
 - [ ] **Global Leaderboard:** เก็บสถิตินักเนียนมือทอง
 

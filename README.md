@@ -1,6 +1,8 @@
 # Insider Online
 
 A multiplayer online adaptation of the popular social deduction board game "Insider". 
+
+**Live Demo:** [who-know-web.vercel.app](https://who-know-web.vercel.app/)
 Built as a modern web application within a Turborepo.
 
 ## 🚀 Features
@@ -20,7 +22,7 @@ Built as a modern web application within a Turborepo.
 ## 📦 Project Structure
 
 ```text
-insider-online/
+who-know/
 ├── apps/
 │   ├── web/       # Next.js frontend application
 │   └── api/       # NestJS backend/websocket server
@@ -42,8 +44,8 @@ insider-online/
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/krizad/insider-online.git
-   cd insider-online
+   git clone https://github.com/krizad/who-know.git
+   cd who-know
    ```
 
 2. Install dependencies:
