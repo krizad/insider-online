@@ -9,7 +9,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GamesService } from './games.service';
-import { SOCKET_EVENTS, RoomState, Role } from '@repo/types';
+import { SOCKET_EVENTS, RoomState, RoomStatus, Role } from '@repo/types';
 
 @WebSocketGateway({
   cors: {
@@ -28,10 +28,64 @@ export class GamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   handleDisconnect(client: Socket) {
     console.log(`Client disconnected: ${client.id}`);
-    const room = this.gamesService.leaveRoom(client.id);
-    if (room) {
-      this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+    
+    // Check which room the client is currently in before leaving
+    let currentRoomCode = '';
+    for (const [code, r] of (this.gamesService as any).rooms.entries()) {
+      if (r.players.some((p: any) => p.socketId === client.id)) {
+        currentRoomCode = code;
+        break;
+      }
     }
+
+    const result = this.gamesService.leaveRoom(client.id);
+    if (result && 'code' in result && result.code === null) {
+      // Room was deleted because the host left, notify everyone in that room
+      if (currentRoomCode) {
+         this.server.to(currentRoomCode).emit(SOCKET_EVENTS.ROOM_DELETED);
+      }
+      this.server.emit(SOCKET_EVENTS.AVAILABLE_ROOMS_UPDATED, this.gamesService.getAvailableRooms());
+    } else if (result) {
+      // Player left, room still exists
+      this.server.to(result.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, result);
+      this.server.emit(SOCKET_EVENTS.AVAILABLE_ROOMS_UPDATED, this.gamesService.getAvailableRooms());
+    } else {
+      // Room was deleted because everyone left
+      this.server.emit(SOCKET_EVENTS.AVAILABLE_ROOMS_UPDATED, this.gamesService.getAvailableRooms());
+    }
+  }
+
+  @SubscribeMessage('leave_room')
+  handleLeaveRoom(@ConnectedSocket() client: Socket) {
+    let currentRoomCode = '';
+    for (const [code, r] of (this.gamesService as any).rooms.entries()) {
+      if (r.players.some((p: any) => p.socketId === client.id)) {
+        currentRoomCode = code;
+        break;
+      }
+    }
+
+    const result = this.gamesService.leaveRoom(client.id);
+    if (result && 'code' in result && result.code === null) {
+      if (currentRoomCode) {
+         this.server.to(currentRoomCode).emit(SOCKET_EVENTS.ROOM_DELETED);
+      }
+      this.server.emit(SOCKET_EVENTS.AVAILABLE_ROOMS_UPDATED, this.gamesService.getAvailableRooms());
+    } else if (result) {
+      this.server.to(result.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, result);
+      this.server.emit(SOCKET_EVENTS.AVAILABLE_ROOMS_UPDATED, this.gamesService.getAvailableRooms());
+    } else {
+      this.server.emit(SOCKET_EVENTS.AVAILABLE_ROOMS_UPDATED, this.gamesService.getAvailableRooms());
+    }
+
+    if (currentRoomCode) {
+      client.leave(currentRoomCode);
+    }
+  }
+
+  @SubscribeMessage(SOCKET_EVENTS.GET_AVAILABLE_ROOMS)
+  handleGetAvailableRooms(@ConnectedSocket() client: Socket) {
+    client.emit(SOCKET_EVENTS.AVAILABLE_ROOMS_UPDATED, this.gamesService.getAvailableRooms());
   }
 
   @SubscribeMessage('create_room')
@@ -49,6 +103,7 @@ export class GamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (updatedRoom) {
       client.join(updatedRoom.code);
       client.emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, updatedRoom);
+      this.server.emit(SOCKET_EVENTS.AVAILABLE_ROOMS_UPDATED, this.gamesService.getAvailableRooms());
     }
   }
 
@@ -66,6 +121,23 @@ export class GamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (room) {
       client.join(room.code);
       this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+      this.server.emit(SOCKET_EVENTS.AVAILABLE_ROOMS_UPDATED, this.gamesService.getAvailableRooms());
+
+      const player = room.players.find(p => p.socketId === client.id);
+      if (player?.role) {
+        if (room.status === RoomStatus.WORD_SETTING) {
+          if (player.role === Role.Host) {
+            client.emit(SOCKET_EVENTS.ROLE_ASSIGNED, { role: player.role });
+          }
+        } else if (room.status !== RoomStatus.LOBBY) {
+          client.emit(SOCKET_EVENTS.ROLE_ASSIGNED, { role: player.role });
+          
+          const secretWord = this.gamesService.getSecretWord(room.code);
+          if (secretWord && (player.role === Role.Host || player.role === Role.Know)) {
+            client.emit(SOCKET_EVENTS.WORD_SETTING_COMPLETED, { word: secretWord });
+          }
+        }
+      }
     } else {
       client.emit(SOCKET_EVENTS.ERROR, { message: 'Room not found' });
     }
@@ -78,6 +150,7 @@ export class GamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (result) {
       // Broadcast updated room state
       this.server.to(result.room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, result.room);
+      this.server.emit(SOCKET_EVENTS.AVAILABLE_ROOMS_UPDATED, this.gamesService.getAvailableRooms());
       
       // ONLY dispatch the Host role upfront so they know they are the host to set the word
       const host = Object.entries(result.roles).find(([_, role]) => role === Role.Host);
@@ -115,6 +188,17 @@ export class GamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @SubscribeMessage(SOCKET_EVENTS.STOP_TIMER)
+  handleStopTimer(@MessageBody() data: { code: string }, @ConnectedSocket() client: Socket) {
+    const room = this.gamesService.stopTimer(data.code, client.id);
+
+    if (room) {
+      this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+    } else {
+      client.emit(SOCKET_EVENTS.ERROR, { message: 'Not authorized or invalid game state to stop timer.' });
+    }
+  }
+
   @SubscribeMessage(SOCKET_EVENTS.END_QUESTIONING)
   handleEndQuestioning(@MessageBody() data: { code: string; timeout?: boolean }, @ConnectedSocket() client: Socket) {
     const room = this.gamesService.endQuestioning(data.code, client.id, data.timeout);
@@ -144,6 +228,7 @@ export class GamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     if (room) {
       this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+      this.server.emit(SOCKET_EVENTS.AVAILABLE_ROOMS_UPDATED, this.gamesService.getAvailableRooms());
     } else {
       client.emit(SOCKET_EVENTS.ERROR, { message: 'Not authorized to reset game or invalid state.' });
     }

@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 @Injectable()
 export class GamesService {
   private rooms: Map<string, RoomState> = new Map();
+  private readonly secretWords: Map<string, string> = new Map();
 
   createRoom(hostId: string): RoomState {
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -17,7 +18,7 @@ export class GamesService {
       createdAt: new Date(),
       config: {
         hostSelection: 'ROUND_ROBIN',
-        timerMin: 3
+        timerMin: 5
       }
     };
     this.rooms.set(code, room);
@@ -28,8 +29,35 @@ export class GamesService {
     const room = this.rooms.get(code);
     if (!room) return null;
 
-    const existingPlayer = room.players.find(p => p.socketId === user.socketId);
-    if (!existingPlayer) {
+    // First check if the user is reconnecting (by checking name since they don't have accounts)
+    const existingPlayer = room.players.find(p => p.name === user.name);
+    
+    if (existingPlayer) {
+      // User is reconnecting - update their socket ID
+      const oldSocketId = existingPlayer.socketId;
+      existingPlayer.socketId = user.socketId;
+      
+      // If they were the host, we must update the roomHostId
+      if (room.roomHostId === oldSocketId) {
+        room.roomHostId = user.socketId;
+      }
+      
+      // If there are votes pointing to the old socket ID, we need to update those too
+      if (room.votes) {
+        // Update votes CAST BY this player
+        if (room.votes[oldSocketId]) {
+          room.votes[user.socketId] = room.votes[oldSocketId];
+          delete room.votes[oldSocketId];
+        }
+        
+        // Update votes pointing TO this player
+        Object.entries(room.votes).forEach(([voterId, targetId]) => {
+          if (targetId === oldSocketId) {
+            room.votes![voterId] = user.socketId;
+          }
+        });
+      }
+    } else {
       room.players.push({
         ...user,
         score: 0,
@@ -41,19 +69,23 @@ export class GamesService {
     return room;
   }
 
-  leaveRoom(clientId: string): RoomState | null {
+  leaveRoom(clientId: string): RoomState | null | { code: null } {
     for (const [code, room] of this.rooms.entries()) {
       const playerIndex = room.players.findIndex(p => p.socketId === clientId);
       if (playerIndex !== -1) {
+        // If the Room Host leaves, destroy the entire room
+        if (room.roomHostId === clientId) {
+          this.rooms.delete(code);
+          this.secretWords.delete(code);
+          return { code: null }; // special return to indicate the room was deleted entirely
+        }
+
         room.players.splice(playerIndex, 1);
         
         if (room.players.length === 0) {
           this.rooms.delete(code);
+          this.secretWords.delete(code);
           return null;
-        }
-
-        if (room.roomHostId === clientId) {
-          room.roomHostId = room.players[0].socketId;
         }
 
         this.rooms.set(code, room);
@@ -65,6 +97,20 @@ export class GamesService {
 
   getRoom(code: string): RoomState | undefined {
     return this.rooms.get(code);
+  }
+
+  getAvailableRooms(): { code: string; hostName: string; playerCount: number }[] {
+    const availableRooms = [];
+    for (const room of this.rooms.values()) {
+      if (room.status === RoomStatus.LOBBY) {
+        availableRooms.push({
+          code: room.code,
+          hostName: room.players.find(p => p.socketId === room.roomHostId)?.name || 'Unknown',
+          playerCount: room.players.length
+        });
+      }
+    }
+    return availableRooms;
   }
 
   assignRoles(code: string, requesterId: string): { room: RoomState, roles: Record<string, Role> } | null {
@@ -128,10 +174,23 @@ export class GamesService {
 
     room.status = RoomStatus.QUESTIONING;
     // Set timer based on config
-    const timeMs = (room.config.timerMin || 3) * 60 * 1000;
+    const timeMs = (room.config.timerMin || 5) * 60 * 1000;
     room.endTime = Date.now() + timeMs;
     this.rooms.set(code, room);
+    this.secretWords.set(code, word);
 
+    return room;
+  }
+
+  stopTimer(code: string, requesterId: string): RoomState | null {
+    const room = this.rooms.get(code);
+    if (!room || room.status !== RoomStatus.QUESTIONING) return null;
+
+    const player = room.players.find(p => p.socketId === requesterId);
+    if (!player || player.role !== Role.Host) return null;
+
+    room.endTime = undefined;
+    this.rooms.set(code, room);
     return room;
   }
 
@@ -227,10 +286,11 @@ export class GamesService {
     
     // clear all player scores/roles for next round
     room.players.forEach(p => {
-      p.role = null;
+      p.role = null as unknown as Role;
     });
 
     this.rooms.set(code, room);
+    this.secretWords.delete(code);
     return room;
   }
 
@@ -243,5 +303,9 @@ export class GamesService {
     room.config = { ...room.config, ...config };
     this.rooms.set(code, room);
     return room;
+  }
+
+  getSecretWord(code: string): string | undefined {
+    return this.secretWords.get(code);
   }
 }

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { io, Socket } from 'socket.io-client';
-import { RoomState, RoomStatus, Role, SOCKET_EVENTS } from '@repo/types';
+import { RoomState, RoomStatus, Role, SOCKET_EVENTS, AvailableRoom } from '@repo/types';
 import { toast } from 'react-hot-toast';
 
 interface GameState {
@@ -11,6 +11,7 @@ interface GameState {
   myName: string;
   socketId: string;
   secretWord: string | null;
+  availableRooms: AvailableRoom[];
   connect: () => void;
   setName: (name: string) => void;
   createRoom: () => void;
@@ -18,8 +19,10 @@ interface GameState {
   startGame: () => void;
   setWord: (word: string) => void;
   endQuestioning: (timeout?: boolean) => void;
+  stopTimer: () => void;
   submitVote: (targetId: string) => void;
   resetRoom: () => void;
+  leaveRoom: () => void;
   updateConfig: (config: Partial<RoomState['config']>) => void;
 }
 
@@ -31,6 +34,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   myName: '',
   socketId: '',
   secretWord: null,
+  availableRooms: [],
 
   setName: (name) => set({ myName: name }),
 
@@ -41,6 +45,17 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     socket.on('connect', () => {
       set({ connected: true, socket, socketId: socket.id });
+      
+      // Auto-reconnect if session exists
+      const savedCode = localStorage.getItem('who-know-roomCode');
+      const savedName = localStorage.getItem('who-know-name');
+      if (savedCode && savedName) {
+        set({ myName: savedName });
+        socket.emit(SOCKET_EVENTS.JOIN_ROOM, { code: savedCode, name: savedName });
+      }
+      
+      // Request active rooms lobby
+      socket.emit(SOCKET_EVENTS.GET_AVAILABLE_ROOMS);
     });
 
     socket.on('disconnect', () => {
@@ -53,10 +68,28 @@ export const useGameStore = create<GameState>((set, get) => ({
       } else {
         set({ room });
       }
+      
+      // Save session if we are in the room
+      const currentName = get().myName;
+      const isMe = room.players.find(p => p.socketId === socket.id || p.name === currentName);
+      if (isMe) {
+          localStorage.setItem('who-know-roomCode', room.code);
+          localStorage.setItem('who-know-name', currentName);
+      }
     });
 
     socket.on(SOCKET_EVENTS.ROLE_ASSIGNED, ({ role }: { role: Role }) => {
       set({ myRole: role });
+    });
+
+    socket.on(SOCKET_EVENTS.ROOM_DELETED, () => {
+      localStorage.removeItem('who-know-roomCode');
+      set({ room: null, myRole: null, secretWord: null });
+      toast.error('The Room Host has left. Room has been closed.');
+    });
+
+    socket.on(SOCKET_EVENTS.AVAILABLE_ROOMS_UPDATED, (rooms: AvailableRoom[]) => {
+      set({ availableRooms: rooms });
     });
 
     socket.on(SOCKET_EVENTS.WORD_SETTING_COMPLETED, ({ word }: { word: string }) => {
@@ -64,6 +97,10 @@ export const useGameStore = create<GameState>((set, get) => ({
     });
 
     socket.on(SOCKET_EVENTS.ERROR, ({ message }: { message: string }) => {
+      if (message === 'Room not found') {
+        localStorage.removeItem('who-know-roomCode');
+        set({ room: null });
+      }
       toast.error(message);
     });
   },
@@ -107,6 +144,13 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
 
+  stopTimer: () => {
+    const { socket, room } = get();
+    if (socket && room) {
+      socket.emit(SOCKET_EVENTS.STOP_TIMER, { code: room.code });
+    }
+  },
+
   submitVote: (targetId: string) => {
     const { socket, room } = get();
     if (socket && room) {
@@ -119,6 +163,15 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (socket && room) {
       set({ myRole: null, secretWord: null });
       socket.emit(SOCKET_EVENTS.RESET_GAME, { code: room.code });
+    }
+  },
+
+  leaveRoom: () => {
+    const { socket } = get();
+    if (socket) {
+      socket.emit('leave_room');
+      localStorage.removeItem('who-know-roomCode');
+      set({ room: null, myRole: null, secretWord: null });
     }
   },
   
