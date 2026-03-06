@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { io, Socket } from 'socket.io-client';
-import { RoomState, RoomStatus, Role, SOCKET_EVENTS, AvailableRoom } from '@repo/types';
+import { RoomState, RoomStatus, Role, SOCKET_EVENTS, AvailableRoom, GameType } from '@repo/types';
 import { toast } from 'react-hot-toast';
 
 interface GameState {
@@ -14,7 +14,7 @@ interface GameState {
   availableRooms: AvailableRoom[];
   connect: () => void;
   setName: (name: string) => void;
-  createRoom: () => void;
+  createRoom: (gameType?: GameType) => void;
   joinRoom: (code: string) => void;
   startGame: () => void;
   setWord: (word: string) => void;
@@ -24,6 +24,9 @@ interface GameState {
   resetRoom: () => void;
   leaveRoom: () => void;
   updateConfig: (config: Partial<RoomState['config']>) => void;
+  tttJoinSide: (side: "X" | "O") => void;
+  tttMakeMove: (index: number) => void;
+  tttReset: () => void;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -105,10 +108,10 @@ export const useGameStore = create<GameState>((set, get) => ({
     });
   },
 
-  createRoom: () => {
+  createRoom: (gameType: GameType = GameType.WHO_KNOW) => {
     const { socket, myName } = get();
     if (socket && myName) {
-      socket.emit('create_room', { name: myName });
+      socket.emit('create_room', { name: myName, gameType });
     } else if (!myName) {
       toast.error('Please enter your name first');
     }
@@ -179,6 +182,27 @@ export const useGameStore = create<GameState>((set, get) => ({
     const { socket, room } = get();
     if (socket && room) {
       socket.emit(SOCKET_EVENTS.UPDATE_CONFIG, { code: room.code, config });
+    }
+  },
+
+  tttJoinSide: (side: "X" | "O") => {
+    const { socket, room } = get();
+    if (socket && room) {
+      socket.emit(SOCKET_EVENTS.TTT_JOIN_SIDE, { code: room.code, side });
+    }
+  },
+
+  tttMakeMove: (index: number) => {
+    const { socket, room } = get();
+    if (socket && room) {
+      socket.emit(SOCKET_EVENTS.TTT_MAKE_MOVE, { code: room.code, index });
+    }
+  },
+
+  tttReset: () => {
+    const { socket, room } = get();
+    if (socket && room) {
+      socket.emit(SOCKET_EVENTS.TTT_RESET, { code: room.code });
     }
   }
 }));

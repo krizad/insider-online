@@ -1,9 +1,15 @@
 export enum RoomStatus {
   LOBBY = "LOBBY",
+  PLAYING = "PLAYING",
   WORD_SETTING = "WORD_SETTING",
   QUESTIONING = "QUESTIONING",
   VOTING = "VOTING",
   RESULT = "RESULT",
+}
+
+export enum GameType {
+  WHO_KNOW = "WHO_KNOW",
+  TIC_TAC_TOE = "TIC_TAC_TOE",
 }
 
 export enum Role {
@@ -32,7 +38,22 @@ export const SOCKET_EVENTS = {
   GET_AVAILABLE_ROOMS: "get_available_rooms",
   AVAILABLE_ROOMS_UPDATED: "available_rooms_updated",
   ERROR: "error",
+  // Tic-Tac-Toe specific events
+  TTT_JOIN_SIDE: "ttt_join_side",
+  TTT_MAKE_MOVE: "ttt_make_move",
+  TTT_RESET: "ttt_reset",
 } as const;
+
+export type TicTacToeCell = "X" | "O" | null;
+
+export interface TicTacToeState {
+  board: TicTacToeCell[]; // Array of 9 cells
+  playerXId?: string; // socketId of Player X
+  playerOId?: string; // socketId of Player O
+  currentTurn: "X" | "O";
+  winner?: "X" | "O" | "DRAW";
+  winningLine?: number[]; // indices of the winning line
+}
 
 export interface UserState {
   id: string;
@@ -52,6 +73,7 @@ export interface RoomConfig {
 
 export interface RoomState {
   id: string;
+  gameType: GameType;
   code: string;
   status: RoomStatus;
   roomHostId: string;
@@ -61,10 +83,12 @@ export interface RoomState {
   votes?: Record<string, string>;
   winner?: WinningTeam;
   config: RoomConfig;
+  ticTacToeState?: TicTacToeState;
 }
 
 export interface AvailableRoom {
   code: string;
+  gameType: GameType;
   hostName: string;
   playerCount: number;
 }

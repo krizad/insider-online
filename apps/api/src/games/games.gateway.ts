@@ -9,7 +9,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { GamesService } from './games.service';
-import { SOCKET_EVENTS, RoomState, RoomStatus, Role } from '@repo/types';
+import { SOCKET_EVENTS, RoomState, RoomStatus, Role, GameType, TicTacToeCell } from '@repo/types';
 
 @WebSocketGateway({
   cors: {
@@ -90,10 +90,10 @@ export class GamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('create_room')
   handleCreateRoom(
-    @MessageBody() data: { name: string },
+    @MessageBody() data: { name: string; gameType?: GameType },
     @ConnectedSocket() client: Socket,
   ) {
-    const room = this.gamesService.createRoom(client.id);
+    const room = this.gamesService.createRoom(client.id, data.gameType);
     const updatedRoom = this.gamesService.joinRoom(room.code, {
       id: client.id,
       name: data.name,
@@ -242,6 +242,51 @@ export class GamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
     } else {
       client.emit(SOCKET_EVENTS.ERROR, { message: 'Not authorized to update config or invalid state.' });
+    }
+  }
+
+  // --- Tic-Tac-Toe Game Actions ---
+
+  @SubscribeMessage(SOCKET_EVENTS.TTT_JOIN_SIDE)
+  handleTTTJoinSide(
+    @MessageBody() data: { code: string; side: 'X' | 'O' },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = this.gamesService.tttJoinSide(data.code, client.id, data.side);
+    if (room) {
+      this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+      // If we transitioned to PLAYING, the available rooms list changed logic doesn't strictly need update
+      // but safe to broadcast if lobby state changed.
+      this.server.emit(SOCKET_EVENTS.AVAILABLE_ROOMS_UPDATED, this.gamesService.getAvailableRooms());
+    } else {
+      client.emit(SOCKET_EVENTS.ERROR, { message: 'Not authorized or slot already taken.' });
+    }
+  }
+
+  @SubscribeMessage(SOCKET_EVENTS.TTT_MAKE_MOVE)
+  handleTTTMakeMove(
+    @MessageBody() data: { code: string; index: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = this.gamesService.tttMakeMove(data.code, client.id, data.index);
+    if (room) {
+      this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+    } else {
+      client.emit(SOCKET_EVENTS.ERROR, { message: 'Invalid move.' });
+    }
+  }
+
+  @SubscribeMessage(SOCKET_EVENTS.TTT_RESET)
+  handleTTTReset(
+    @MessageBody() data: { code: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = this.gamesService.tttReset(data.code, client.id);
+    if (room) {
+      this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+      this.server.emit(SOCKET_EVENTS.AVAILABLE_ROOMS_UPDATED, this.gamesService.getAvailableRooms());
+    } else {
+      client.emit(SOCKET_EVENTS.ERROR, { message: 'Not authorized to reset game.' });
     }
   }
 }

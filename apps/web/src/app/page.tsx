@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useGameStore } from "@/store/useGameStore";
-import { RoomStatus, Role } from "@repo/types";
+import { RoomStatus, Role, GameType } from "@repo/types";
 import { RoleCard } from "@/components/RoleCard";
 import { RulesModal } from "@/components/RulesModal";
 import { Toaster, toast } from "react-hot-toast";
@@ -144,6 +144,113 @@ function CountdownTimer({ endTime }: { endTime?: number }) {
   );
 }
 
+function TicTacToeView() {
+  const { room, socketId, tttJoinSide, tttMakeMove, tttReset } = useGameStore();
+
+  if (!room || !room.ticTacToeState) return null;
+  const ttt = room.ticTacToeState;
+
+  const isX = ttt.playerXId === socketId;
+  const isO = ttt.playerOId === socketId;
+  const mySide = isX ? "X" : isO ? "O" : null;
+  const isMyTurn = mySide === ttt.currentTurn;
+
+  return (
+    <div className="flex-1 flex flex-col items-center justify-center p-4">
+      {room.status === RoomStatus.LOBBY ? (
+        <div className="flex flex-col items-center gap-6">
+          <h2 className="text-2xl font-black text-indigo-400 uppercase tracking-widest">Tic-Tac-Toe Lobby</h2>
+          <div className="flex gap-4">
+            <div className={`p-6 border-2 rounded-2xl flex flex-col items-center gap-4 ${ttt.playerXId ? 'border-slate-700 bg-slate-900/50' : 'border-indigo-500 bg-indigo-950/20'}`}>
+              <div className="text-4xl font-black text-blue-400">X</div>
+              {ttt.playerXId ? (
+                <div className="text-slate-300 font-bold">{room.players.find(p => p.socketId === ttt.playerXId)?.name}</div>
+              ) : (
+                <button onClick={() => tttJoinSide("X")} className="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg font-bold">Join as X</button>
+              )}
+            </div>
+            
+            <div className={`p-6 border-2 rounded-2xl flex flex-col items-center gap-4 ${ttt.playerOId ? 'border-slate-700 bg-slate-900/50' : 'border-rose-500 bg-rose-950/20'}`}>
+              <div className="text-4xl font-black text-rose-400">O</div>
+              {ttt.playerOId ? (
+                <div className="text-slate-300 font-bold">{room.players.find(p => p.socketId === ttt.playerOId)?.name}</div>
+              ) : (
+                <button onClick={() => tttJoinSide("O")} className="bg-rose-600 hover:bg-rose-500 px-4 py-2 rounded-lg font-bold">Join as O</button>
+              )}
+            </div>
+          </div>
+          <p className="text-slate-400 font-medium">Waiting for both players to join...</p>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center gap-8 w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
+          
+          <div className="flex justify-between w-full items-center px-4">
+            <div className={`flex flex-col items-center ${ttt.currentTurn === "X" ? "scale-110 drop-shadow-[0_0_15px_rgba(96,165,250,0.5)]" : "opacity-50"} transition-all`}>
+              <span className="text-blue-400 font-black text-2xl">X</span>
+              <span className="text-slate-300 font-medium text-sm">{room.players.find(p => p.socketId === ttt.playerXId)?.name}</span>
+              <span className="text-blue-300 font-mono text-xs mt-1 bg-blue-950/50 px-2 py-0.5 rounded-md border border-blue-900/50 shadow-inner">
+                Score: {room.players.find(p => p.socketId === ttt.playerXId)?.score || 0}
+              </span>
+            </div>
+            
+            <div className="text-sm font-black tracking-widest uppercase text-slate-500 bg-slate-950 px-3 py-1 rounded-full border border-slate-800">
+              {room.status === RoomStatus.RESULT ? "Game Over" : "Playing"}
+            </div>
+
+            <div className={`flex flex-col items-center ${ttt.currentTurn === "O" ? "scale-110 drop-shadow-[0_0_15px_rgba(244,63,94,0.5)]" : "opacity-50"} transition-all`}>
+              <span className="text-rose-400 font-black text-2xl">O</span>
+              <span className="text-slate-300 font-medium text-sm">{room.players.find(p => p.socketId === ttt.playerOId)?.name}</span>
+              <span className="text-rose-300 font-mono text-xs mt-1 bg-rose-950/50 px-2 py-0.5 rounded-md border border-rose-900/50 shadow-inner">
+                Score: {room.players.find(p => p.socketId === ttt.playerOId)?.score || 0}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3 bg-slate-800 p-3 rounded-2xl border border-slate-700 shadow-inner">
+            {ttt.board.map((cell, index) => {
+              const isWinningCell = ttt.winningLine?.includes(index);
+              
+              return (
+                <button
+                  key={index}
+                  disabled={room.status !== RoomStatus.PLAYING || !isMyTurn || cell !== null}
+                  onClick={() => tttMakeMove(index)}
+                  className={`
+                    w-20 h-20 sm:w-24 sm:h-24 bg-slate-950 rounded-xl flex items-center justify-center text-5xl font-black transition-all
+                    ${cell === null && isMyTurn && room.status === RoomStatus.PLAYING ? 'hover:bg-slate-900 cursor-pointer active:scale-95' : 'cursor-default'}
+                    ${cell === "X" ? "text-blue-400" : cell === "O" ? "text-rose-400" : ""}
+                    ${isWinningCell ? (cell === "X" ? "bg-blue-950/40 shadow-[inset_0_0_20px_rgba(96,165,250,0.2)]" : "bg-rose-950/40 shadow-[inset_0_0_20px_rgba(244,63,94,0.2)]") : ""}
+                  `}
+                >
+                  <span className={isWinningCell ? "animate-pulse" : ""}>{cell}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {room.status === RoomStatus.RESULT && (
+            <div className="flex flex-col items-center gap-4 animate-in zoom-in slide-in-from-bottom-4">
+              {ttt.winner === "DRAW" ? (
+                <div className="text-2xl font-black text-slate-400 bg-slate-800 px-6 py-2 rounded-xl border border-slate-700">It's a Draw!</div>
+              ) : (
+                <div className={`text-3xl font-black px-6 py-2 rounded-xl border ${ttt.winner === "X" ? 'text-blue-400 bg-blue-950/30 border-blue-900' : 'text-rose-400 bg-rose-950/30 border-rose-900'} drop-shadow-xl`}>
+                  {ttt.winner} Wins!
+                </div>
+              )}
+              
+              {(room.roomHostId === socketId || mySide) && (
+                <button onClick={tttReset} className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-8 py-3 rounded-xl mt-2 transition-all shadow-lg active:scale-95">
+                  Play Again
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function GameLobby() {
   const { connect, connected, room, myName, setName, createRoom, joinRoom, startGame, myRole, leaveRoom, availableRooms } = useGameStore();
   const searchParams = useSearchParams();
@@ -228,7 +335,7 @@ function GameLobby() {
           <div className="flex justify-center mb-6">
             <img src="/icon.png" alt="WHO KNOW? Logo" className="w-24 h-24 sm:w-28 sm:h-28 rounded-[2rem] shadow-2xl shadow-indigo-500/20 border border-slate-700" />
           </div>
-          <h1 className="text-4xl sm:text-5xl font-black text-center mb-8 tracking-tighter bg-gradient-to-br from-indigo-400 to-purple-500 bg-clip-text text-transparent">WHO KNOW?</h1>
+          <h1 className="text-4xl sm:text-5xl font-black text-center mb-8 tracking-tighter bg-gradient-to-br from-indigo-400 to-purple-500 bg-clip-text text-transparent">GAME LOBBY</h1>
 
           <div className="space-y-6">
             <div>
@@ -236,9 +343,16 @@ function GameLobby() {
               <input type="text" value={myName} onChange={(e) => setName(e.target.value)} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-medium" placeholder="Enter your name" />
             </div>
 
-            <button onClick={createRoom} disabled={!myName} className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl transition-colors shadow-lg shadow-indigo-500/20">
-              Create New Room
-            </button>
+            <div className="grid grid-cols-2 gap-3">
+              <button onClick={() => createRoom(GameType.WHO_KNOW)} disabled={!myName} className="w-full bg-indigo-600/80 hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-colors shadow-lg border border-indigo-500/50 flex flex-col items-center justify-center gap-1 group">
+                <span className="text-xl group-hover:scale-110 transition-transform">🕵️</span>
+                <span className="text-xs tracking-wider">Who Know!</span>
+              </button>
+              <button onClick={() => createRoom(GameType.TIC_TAC_TOE)} disabled={!myName} className="w-full bg-blue-600/80 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-colors shadow-lg border border-blue-500/50 flex flex-col items-center justify-center gap-1 group">
+                <span className="text-xl group-hover:scale-110 transition-transform">❌⭕️</span>
+                <span className="text-xs tracking-wider">Tic Tac Toe</span>
+              </button>
+            </div>
 
             <div className="relative flex items-center py-2">
               <div className="flex-grow border-t border-slate-800"></div>
@@ -292,7 +406,12 @@ function GameLobby() {
                     className="w-full bg-slate-900 border border-slate-800/80 hover:border-indigo-500/50 rounded-2xl p-4 text-left transition-all flex items-center justify-between group shadow-lg hover:shadow-indigo-500/10 hover:-translate-y-0.5"
                   >
                     <div>
-                      <div className="text-slate-200 font-bold font-mono tracking-widest text-lg leading-none mb-1 group-hover:text-indigo-300 transition-colors">{r.code}</div>
+                      <div className="text-slate-200 font-bold font-mono tracking-widest text-lg leading-none mb-1 group-hover:text-indigo-300 transition-colors flex items-center gap-2">
+                        {r.code}
+                        <span className={`text-[9px] px-1.5 py-0.5 rounded border leading-none ml-2 tracking-normal font-sans ${r.gameType === GameType.TIC_TAC_TOE ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'}`}>
+                          {r.gameType === GameType.TIC_TAC_TOE ? "TIC-TAC-TOE" : "WHO KNOW"}
+                        </span>
+                      </div>
                       <div className="text-slate-500 text-[10px] font-medium uppercase mt-0.5 tracking-wider flex items-center gap-1.5">
                         <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-400">
                           <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
@@ -327,8 +446,12 @@ function GameLobby() {
         <header className="flex-none flex items-center justify-between gap-4 p-2 sm:p-4 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl z-10 w-full">
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap sm:flex-nowrap w-full">
             <img src="/icon.png" alt="Logo" className="w-8 h-8 rounded-lg shadow-sm border border-slate-700" />
-            <span className="text-xs font-medium text-slate-500 hidden sm:block">Room</span>
-            <span className="text-xl sm:text-2xl font-black font-mono tracking-widest text-indigo-400 leading-none">{room.code}</span>
+            <div className="flex flex-col">
+              <span className="text-xs font-black tracking-widest text-slate-500 uppercase leading-none mb-0.5 hidden sm:block">
+               {room.gameType === GameType.TIC_TAC_TOE ? "Tic Tac Toe" : "Who Know"}
+              </span>
+              <span className="text-xl sm:text-2xl font-black font-mono tracking-widest text-indigo-400 leading-none">{room.code}</span>
+            </div>
             <span className="text-[10px] sm:text-xs font-medium text-slate-500 ml-1 sm:ml-2 border-l border-slate-700 pl-2 sm:pl-4 py-0.5 flex items-center gap-1">
               <span className="hidden sm:inline">Room Host:</span>
               <span className="text-slate-300 font-bold truncate max-w-[100px] sm:max-w-[150px]" title="Room Creator">
@@ -375,16 +498,19 @@ function GameLobby() {
         </header>
 
         {/* Role Section at Top */}
-        {myRole && (
+        {myRole && room.gameType !== GameType.TIC_TAC_TOE && (
           <div className="flex-none w-full relative z-0">
             <RoleCard role={myRole} word={useGameStore.getState().secretWord} />
           </div>
         )}
 
         {/* Main Content Area */}
-        <div className="flex-1 min-h-0 flex flex-col md:flex-row gap-2 sm:gap-4">
-          {/* Left: Players Table */}
-          <div className="flex-1 md:flex-1 flex flex-col bg-slate-900 border border-slate-800 rounded-2xl p-2 sm:p-4 shadow-xl overflow-hidden min-h-[100px]">
+        {room.gameType === GameType.TIC_TAC_TOE ? (
+          <TicTacToeView />
+        ) : (
+          <div className="flex-1 min-h-0 flex flex-col md:flex-row gap-2 sm:gap-4">
+            {/* Left: Players Table */}
+            <div className="flex-1 md:flex-1 flex flex-col bg-slate-900 border border-slate-800 rounded-2xl p-2 sm:p-4 shadow-xl overflow-hidden min-h-[100px]">
             <div className="flex flex-none items-center justify-between mb-2 sm:mb-3">
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider pl-1">Players</h3>
               <span className="bg-slate-800 px-2 py-0.5 rounded-full text-[10px] text-indigo-400 font-black border border-slate-700">{room.players.length}</span>
@@ -647,9 +773,10 @@ function GameLobby() {
             )}
           </div>
         </div>
+        )}
 
         {/* Phase Footer */}
-        {room.status !== RoomStatus.LOBBY && (
+        {room.status !== RoomStatus.LOBBY && room.gameType !== GameType.TIC_TAC_TOE && (
           <footer className="flex-none p-2 sm:p-3 bg-slate-900 border border-slate-800 rounded-xl text-center shadow-xl flex items-center justify-center gap-2 sm:gap-3 w-full">
             <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Phase</span>
             <span className="px-3 py-1 bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 rounded-full text-[10px] sm:text-xs font-black tracking-widest">{room.status === "WORD_SETTING" ? "SECRET WORD SELECTION" : room.status.replace("_", " ")}</span>

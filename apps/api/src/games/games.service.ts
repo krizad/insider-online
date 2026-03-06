@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { RoomState, RoomStatus, Role, UserState } from '@repo/types';
+import { RoomState, RoomStatus, Role, UserState, GameType, TicTacToeCell } from '@repo/types';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -7,10 +7,11 @@ export class GamesService {
   private rooms: Map<string, RoomState> = new Map();
   private readonly secretWords: Map<string, string> = new Map();
 
-  createRoom(hostId: string): RoomState {
+  createRoom(hostId: string, gameType: GameType = GameType.WHO_KNOW): RoomState {
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
     const room: RoomState = {
       id: uuidv4(),
+      gameType,
       code,
       status: RoomStatus.LOBBY,
       roomHostId: hostId,
@@ -21,6 +22,14 @@ export class GamesService {
         timerMin: 5
       }
     };
+
+    if (gameType === GameType.TIC_TAC_TOE) {
+      room.ticTacToeState = {
+        board: Array(9).fill(null),
+        currentTurn: "X"
+      };
+    }
+
     this.rooms.set(code, room);
     return room;
   }
@@ -108,12 +117,13 @@ export class GamesService {
     return this.rooms.get(code);
   }
 
-  getAvailableRooms(): { code: string; hostName: string; playerCount: number }[] {
+  getAvailableRooms(): { code: string; gameType: GameType; hostName: string; playerCount: number }[] {
     const availableRooms = [];
     for (const room of this.rooms.values()) {
       if (room.status === RoomStatus.LOBBY) {
         availableRooms.push({
           code: room.code,
+          gameType: room.gameType,
           hostName: room.players.find(p => p.socketId === room.roomHostId)?.name || 'Unknown',
           playerCount: room.players.length
         });
@@ -316,5 +326,123 @@ export class GamesService {
 
   getSecretWord(code: string): string | undefined {
     return this.secretWords.get(code);
+  }
+
+  // --- Tic-Tac-Toe Logic ---
+
+  tttJoinSide(code: string, clientId: string, side: "X" | "O"): RoomState | null {
+    const room = this.rooms.get(code);
+    if (!room || room.gameType !== GameType.TIC_TAC_TOE || room.status !== RoomStatus.LOBBY) return null;
+
+    if (!room.ticTacToeState) return null;
+
+    // Check if player is already in a slot, remove them
+    if (room.ticTacToeState.playerXId === clientId) room.ticTacToeState.playerXId = undefined;
+    if (room.ticTacToeState.playerOId === clientId) room.ticTacToeState.playerOId = undefined;
+
+    // Check if slot is available
+    if (side === "X" && !room.ticTacToeState.playerXId) {
+      room.ticTacToeState.playerXId = clientId;
+    } else if (side === "O" && !room.ticTacToeState.playerOId) {
+      room.ticTacToeState.playerOId = clientId;
+    }
+
+    // If both slots are filled, transition to playing
+    if (room.ticTacToeState.playerXId && room.ticTacToeState.playerOId) {
+      room.status = RoomStatus.PLAYING;
+    }
+
+    this.rooms.set(code, room);
+    return room;
+  }
+
+  private tttCheckWin(board: TicTacToeCell[]): { winner: "X" | "O" | null, line?: number[] } {
+    const lines = [
+      [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+      [0, 3, 6], [1, 4, 7], [2, 5, 8], // cols
+      [0, 4, 8], [2, 4, 6] // diagonals
+    ];
+
+    for (let i = 0; i < lines.length; i++) {
+      const [a, b, c] = lines[i];
+      if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+        return { winner: board[a] as "X" | "O", line: lines[i] };
+      }
+    }
+    return { winner: null };
+  }
+
+  tttMakeMove(code: string, clientId: string, index: number): RoomState | null {
+    const room = this.rooms.get(code);
+    if (!room || room.gameType !== GameType.TIC_TAC_TOE || room.status !== RoomStatus.PLAYING) return null;
+
+    const ttt = room.ticTacToeState;
+    if (!ttt || ttt.winner) return null; // Game already over
+
+    // Identify which side the client is
+    const mySide = ttt.playerXId === clientId ? "X" : ttt.playerOId === clientId ? "O" : null;
+    
+    // Only players in the game can move, and only on their turn
+    if (!mySide || ttt.currentTurn !== mySide) return null;
+
+    // Check if cell is empty
+    if (ttt.board[index] !== null) return null;
+
+    // Make move
+    ttt.board[index] = mySide;
+
+    // Check win condition
+    const { winner, line } = this.tttCheckWin(ttt.board);
+    if (winner) {
+      ttt.winner = winner;
+      ttt.winningLine = line;
+      room.status = RoomStatus.RESULT;
+      
+      // Update scores
+      const winnerPlayerId = winner === "X" ? ttt.playerXId : ttt.playerOId;
+      const winnerPlayer = room.players.find(p => p.socketId === winnerPlayerId);
+      if (winnerPlayer) winnerPlayer.score += 1;
+
+    } else if (!ttt.board.includes(null)) {
+      // Draw condition
+      ttt.winner = "DRAW";
+      room.status = RoomStatus.RESULT;
+    } else {
+      // Switch turns
+      ttt.currentTurn = ttt.currentTurn === "X" ? "O" : "X";
+    }
+
+    this.rooms.set(code, room);
+    return room;
+  }
+
+  tttReset(code: string, clientId: string): RoomState | null {
+    const room = this.rooms.get(code);
+    if (!room || room.gameType !== GameType.TIC_TAC_TOE || room.status !== RoomStatus.RESULT) return null;
+
+    // Only allow players who are playing or the room host to reset
+    if (room.roomHostId !== clientId && room.ticTacToeState?.playerXId !== clientId && room.ticTacToeState?.playerOId !== clientId) {
+      return null;
+    }
+
+    // Reset state but keep players
+    const willStartImmediately = !!(room.ticTacToeState?.playerXId && room.ticTacToeState?.playerOId);
+    room.status = willStartImmediately ? RoomStatus.PLAYING : RoomStatus.LOBBY;
+
+    const previousWinner = room.ticTacToeState?.winner;
+    
+    room.ticTacToeState = {
+      board: Array(9).fill(null),
+      playerXId: room.ticTacToeState?.playerXId,
+      playerOId: room.ticTacToeState?.playerOId,
+      currentTurn: previousWinner === "X" ? "O" : "X" // Loser goes first, default X
+    };
+
+    if (previousWinner === "DRAW") {
+      room.ticTacToeState.currentTurn = "X";
+    }
+
+    this.rooms.set(code, room);
+    return room;
   }
 }
