@@ -30,6 +30,10 @@ interface GameState {
   rpsMakeChoice: (choice: "ROCK" | "PAPER" | "SCISSORS") => void;
   rpsNextRound: () => void;
   rpsReset: () => void;
+  gobblerJoinSide: (side: "X" | "O") => void;
+  gobblerPlacePiece: (pieceId: string, toIndex: number) => void;
+  gobblerMovePiece: (fromIndex: number, toIndex: number) => void;
+  gobblerReset: () => void;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -227,6 +231,34 @@ export const useGameStore = create<GameState>((set, get) => ({
     const { socket, room } = get();
     if (socket && room) {
       socket.emit(SOCKET_EVENTS.RPS_RESET, { code: room.code });
+    }
+  },
+
+  gobblerJoinSide: (side: "X" | "O") => {
+    const { socket, room } = get();
+    if (socket && room) {
+      socket.emit(SOCKET_EVENTS.GOBBLER_JOIN_SIDE, { code: room.code, side });
+    }
+  },
+
+  gobblerPlacePiece: (pieceId: string, toIndex: number) => {
+    const { socket, room } = get();
+    if (socket && room) {
+      socket.emit(SOCKET_EVENTS.GOBBLER_PLACE, { code: room.code, pieceId, toIndex });
+    }
+  },
+
+  gobblerMovePiece: (fromIndex: number, toIndex: number) => {
+    const { socket, room } = get();
+    if (socket && room) {
+      socket.emit(SOCKET_EVENTS.GOBBLER_MOVE, { code: room.code, fromIndex, toIndex });
+    }
+  },
+
+  gobblerReset: () => {
+    const { socket, room } = get();
+    if (socket && room) {
+      socket.emit(SOCKET_EVENTS.GOBBLER_RESET, { code: room.code });
     }
   }
 }));

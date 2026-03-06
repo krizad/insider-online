@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { WhoKnowService } from './who-know/who-know.service';
 import { TicTacToeService } from './tic-tac-toe/tic-tac-toe.service';
 import { RPSService } from './rps/rps.service';
+import { GobblerService } from './gobbler/gobbler.service';
 
 @Injectable()
 export class GamesService {
@@ -13,7 +14,8 @@ export class GamesService {
   constructor(
     private readonly whoKnowService: WhoKnowService,
     private readonly ticTacToeService: TicTacToeService,
-    private readonly rpsService: RPSService
+    private readonly rpsService: RPSService,
+    private readonly gobblerService: GobblerService
   ) {}
 
   createRoom(hostId: string, gameType: GameType = GameType.WHO_KNOW): RoomState {
@@ -45,6 +47,29 @@ export class GamesService {
         queue: [],
         choices: {},
         scores: {},
+      };
+    } else if (gameType === GameType.GOBBLER_TIC_TAC_TOE) {
+      room.gobblerState = {
+        board: Array.from({ length: 9 }, () => []),
+        currentTurn: "X",
+        inventory: {
+          X: [
+            { id: uuidv4(), side: "X", size: "SMALL" },
+            { id: uuidv4(), side: "X", size: "SMALL" },
+            { id: uuidv4(), side: "X", size: "MEDIUM" },
+            { id: uuidv4(), side: "X", size: "MEDIUM" },
+            { id: uuidv4(), side: "X", size: "LARGE" },
+            { id: uuidv4(), side: "X", size: "LARGE" },
+          ],
+          O: [
+            { id: uuidv4(), side: "O", size: "SMALL" },
+            { id: uuidv4(), side: "O", size: "SMALL" },
+            { id: uuidv4(), side: "O", size: "MEDIUM" },
+            { id: uuidv4(), side: "O", size: "MEDIUM" },
+            { id: uuidv4(), side: "O", size: "LARGE" },
+            { id: uuidv4(), side: "O", size: "LARGE" },
+          ],
+        }
       };
     }
 
@@ -275,6 +300,44 @@ export class GamesService {
     if (!room) return null;
     
     const updatedRoom = this.rpsService.reset(room, clientId);
+    if (updatedRoom) this.rooms.set(code, updatedRoom);
+    return updatedRoom;
+  }
+
+  // --- Gobbler Tic-Tac-Toe Logic ---
+
+  gobblerJoinSide(code: string, clientId: string, side: "X" | "O"): RoomState | null {
+    const room = this.rooms.get(code);
+    if (!room) return null;
+    
+    const updatedRoom = this.gobblerService.joinSide(room, clientId, side);
+    if (updatedRoom) this.rooms.set(code, updatedRoom);
+    return updatedRoom;
+  }
+
+  gobblerPlacePiece(code: string, clientId: string, pieceId: string, toIndex: number): RoomState | null {
+    const room = this.rooms.get(code);
+    if (!room) return null;
+    
+    const updatedRoom = this.gobblerService.placePiece(room, clientId, pieceId, toIndex);
+    if (updatedRoom) this.rooms.set(code, updatedRoom);
+    return updatedRoom;
+  }
+
+  gobblerMovePiece(code: string, clientId: string, fromIndex: number, toIndex: number): RoomState | null {
+    const room = this.rooms.get(code);
+    if (!room) return null;
+    
+    const updatedRoom = this.gobblerService.movePiece(room, clientId, fromIndex, toIndex);
+    if (updatedRoom) this.rooms.set(code, updatedRoom);
+    return updatedRoom;
+  }
+
+  gobblerReset(code: string, clientId: string): RoomState | null {
+    const room = this.rooms.get(code);
+    if (!room) return null;
+    
+    const updatedRoom = this.gobblerService.reset(room, clientId);
     if (updatedRoom) this.rooms.set(code, updatedRoom);
     return updatedRoom;
   }

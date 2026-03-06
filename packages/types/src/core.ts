@@ -1,5 +1,6 @@
 import { TicTacToeState } from "./tic-tac-toe";
 import { RPSState } from "./rps";
+import { GobblerState } from "./gobbler-tic-tac-toe";
 import { WinningTeam, Role } from "./who-know";
 
 export enum RoomStatus {
@@ -15,6 +16,7 @@ export enum GameType {
   WHO_KNOW = "WHO_KNOW",
   TIC_TAC_TOE = "TIC_TAC_TOE",
   RPS = "RPS",
+  GOBBLER_TIC_TAC_TOE = "GOBBLER_TIC_TAC_TOE",
 }
 
 // Socket Constants
@@ -43,6 +45,11 @@ export const SOCKET_EVENTS = {
   RPS_NEXT_ROUND: "rps_next_round",
   RPS_MAKE_CHOICE: "rps_make_choice",
   RPS_RESET: "rps_reset",
+  // Gobbler Tic-Tac-Toe specific events
+  GOBBLER_JOIN_SIDE: "gobbler_join_side",
+  GOBBLER_PLACE: "gobbler_place",
+  GOBBLER_MOVE: "gobbler_move",
+  GOBBLER_RESET: "gobbler_reset",
 } as const;
 
 export interface UserState {
@@ -77,6 +84,7 @@ export interface RoomState {
   config: RoomConfig;
   ticTacToeState?: TicTacToeState;
   rpsState?: RPSState;
+  gobblerState?: GobblerState;
 }
 
 export interface AvailableRoom {

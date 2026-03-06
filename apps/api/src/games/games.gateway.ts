@@ -331,4 +331,60 @@ export class GamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.emit(SOCKET_EVENTS.ERROR, { message: 'Not authorized to reset game.' });
     }
   }
+
+  // --- Gobbler Tic-Tac-Toe Actions ---
+
+  @SubscribeMessage(SOCKET_EVENTS.GOBBLER_JOIN_SIDE)
+  handleGobblerJoinSide(
+    @MessageBody() data: { code: string; side: 'X' | 'O' },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = this.gamesService.gobblerJoinSide(data.code, client.id, data.side);
+    if (room) {
+      this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+      this.server.emit(SOCKET_EVENTS.AVAILABLE_ROOMS_UPDATED, this.gamesService.getAvailableRooms());
+    } else {
+      client.emit(SOCKET_EVENTS.ERROR, { message: 'Not authorized or slot already taken.' });
+    }
+  }
+
+  @SubscribeMessage(SOCKET_EVENTS.GOBBLER_PLACE)
+  handleGobblerPlace(
+    @MessageBody() data: { code: string; pieceId: string; toIndex: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = this.gamesService.gobblerPlacePiece(data.code, client.id, data.pieceId, data.toIndex);
+    if (room) {
+      this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+    } else {
+      client.emit(SOCKET_EVENTS.ERROR, { message: 'Invalid move or not your turn.' });
+    }
+  }
+
+  @SubscribeMessage(SOCKET_EVENTS.GOBBLER_MOVE)
+  handleGobblerMove(
+    @MessageBody() data: { code: string; fromIndex: number; toIndex: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = this.gamesService.gobblerMovePiece(data.code, client.id, data.fromIndex, data.toIndex);
+    if (room) {
+      this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+    } else {
+      client.emit(SOCKET_EVENTS.ERROR, { message: 'Invalid move or not your turn.' });
+    }
+  }
+
+  @SubscribeMessage(SOCKET_EVENTS.GOBBLER_RESET)
+  handleGobblerReset(
+    @MessageBody() data: { code: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = this.gamesService.gobblerReset(data.code, client.id);
+    if (room) {
+      this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+      this.server.emit(SOCKET_EVENTS.AVAILABLE_ROOMS_UPDATED, this.gamesService.getAvailableRooms());
+    } else {
+      client.emit(SOCKET_EVENTS.ERROR, { message: 'Not authorized to reset game.' });
+    }
+  }
 }

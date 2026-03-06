@@ -13,6 +13,7 @@ import { getAvatarEmoji } from "@/components/core/utils";
 import { TicTacToeView } from "@/components/games/tic-tac-toe/TicTacToeView";
 import { RPSView } from "@/components/games/rps/RPSView";
 import { WhoKnowView } from "@/components/games/who-know/WhoKnowView";
+import { GobblerView } from "@/components/games/gobbler/GobblerView";
 
 // Components extracted to separate files
 
@@ -113,16 +114,26 @@ function GameLobby() {
                 <span className="text-xl group-hover:scale-110 transition-transform">🕵️</span>
                 <span className="text-xs tracking-wider">Who Know!</span>
               </button>
-              <button onClick={() => createRoom(GameType.TIC_TAC_TOE)} disabled={!myName} className="w-full bg-blue-600/80 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-colors shadow-lg border border-blue-500/50 flex flex-col items-center justify-center gap-1 group">
-                <span className="text-xl group-hover:scale-110 transition-transform">❌⭕️</span>
-                <span className="text-xs tracking-wider">Tic Tac Toe</span>
+              <button onClick={() => createRoom(GameType.GOBBLER_TIC_TAC_TOE)} disabled={!myName} className="w-full bg-blue-600/80 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-colors shadow-lg border border-blue-500/50 flex flex-col items-center justify-center gap-1 group">
+                <div className="flex items-end justify-center gap-1.5 group-hover:scale-110 transition-transform h-7">
+                  <span className="text-[10px] leading-none mb-1">❌⭕️</span>
+                  <span className="text-sm leading-none mb-0.5">❌⭕️</span>
+                  <span className="text-xl leading-none">❌⭕️</span>
+                </div>
+                <span className="text-xs tracking-wider">Gobbler Tic Tac Toe</span>
               </button>
             </div>
             
-            <button onClick={() => createRoom(GameType.RPS)} disabled={!myName} className="w-full bg-amber-600/80 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-colors shadow-lg border border-amber-500/50 flex flex-col items-center justify-center gap-1 group">
-              <span className="text-xl group-hover:scale-110 transition-transform">✌️✊✋</span>
-              <span className="text-xs tracking-wider">Hand Duel</span>
-            </button>
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <button onClick={() => createRoom(GameType.TIC_TAC_TOE)} disabled={!myName} className="w-full bg-zinc-600/80 hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-colors shadow-lg border border-zinc-500/50 flex flex-col items-center justify-center gap-1 group">
+                <span className="text-xl group-hover:scale-110 transition-transform">❌⭕️</span>
+                <span className="text-xs tracking-wider">Classic Tic Tac Toe</span>
+              </button>
+              <button onClick={() => createRoom(GameType.RPS)} disabled={!myName} className="w-full bg-amber-600/80 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-colors shadow-lg border border-amber-500/50 flex flex-col items-center justify-center gap-1 group">
+                <span className="text-xl group-hover:scale-110 transition-transform">✌️✊✋</span>
+                <span className="text-xs tracking-wider">Hand Duel</span>
+              </button>
+            </div>
 
             <div className="relative flex items-center py-2">
               <div className="flex-grow border-t border-slate-800"></div>
@@ -178,8 +189,8 @@ function GameLobby() {
                     <div>
                       <div className="text-slate-200 font-bold font-mono tracking-widest text-lg leading-none mb-1 group-hover:text-indigo-300 transition-colors flex items-center gap-2">
                         {r.code}
-                        <span className={`text-[9px] px-1.5 py-0.5 rounded border leading-none ml-2 tracking-normal font-sans ${r.gameType === GameType.TIC_TAC_TOE ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : r.gameType === GameType.RPS ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'}`}>
-                          {r.gameType === GameType.TIC_TAC_TOE ? "TIC-TAC-TOE" : r.gameType === GameType.RPS ? "HAND DUEL" : "WHO KNOW"}
+                        <span className={`text-[9px] px-1.5 py-0.5 rounded border leading-none ml-2 tracking-normal font-sans ${r.gameType === GameType.GOBBLER_TIC_TAC_TOE || r.gameType === GameType.TIC_TAC_TOE ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : r.gameType === GameType.RPS ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'}`}>
+                          {r.gameType === GameType.GOBBLER_TIC_TAC_TOE ? "GOBBLER TIC-TAC-TOE" : r.gameType === GameType.TIC_TAC_TOE ? "TIC-TAC-TOE" : r.gameType === GameType.RPS ? "HAND DUEL" : "WHO KNOW"}
                         </span>
                       </div>
                       <div className="text-slate-500 text-[10px] font-medium uppercase mt-0.5 tracking-wider flex items-center gap-1.5">
@@ -218,7 +229,7 @@ function GameLobby() {
             <img src="/icon.png" alt="Logo" className="w-8 h-8 rounded-lg shadow-sm border border-slate-700" />
             <div className="flex flex-col">
               <span className="text-xs font-black tracking-widest text-slate-500 uppercase leading-none mb-0.5 hidden sm:block">
-               {room.gameType === GameType.TIC_TAC_TOE ? "Tic Tac Toe" : room.gameType === GameType.RPS ? "Hand Duel" : "Who Know"}
+               {room.gameType === GameType.GOBBLER_TIC_TAC_TOE ? "Gobbler Tic Tac Toe" : room.gameType === GameType.TIC_TAC_TOE ? "Tic Tac Toe" : room.gameType === GameType.RPS ? "Hand Duel" : "Who Know"}
               </span>
               <span className="text-xl sm:text-2xl font-black font-mono tracking-widest text-indigo-400 leading-none">{room.code}</span>
             </div>
@@ -275,7 +286,9 @@ function GameLobby() {
         )}
 
         {/* Main Content Area */}
-        {room.gameType === GameType.TIC_TAC_TOE ? (
+        {room.gameType === GameType.GOBBLER_TIC_TAC_TOE ? (
+          <GobblerView />
+        ) : room.gameType === GameType.TIC_TAC_TOE ? (
           <TicTacToeView />
         ) : room.gameType === GameType.RPS && room.status !== RoomStatus.LOBBY ? (
           <RPSView />
