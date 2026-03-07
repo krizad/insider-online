@@ -132,6 +132,10 @@ export class GobblerService {
       const winnerPlayerId = winner === "X" ? gb.playerXId : gb.playerOId;
       const winnerPlayer = room.players.find(p => p.socketId === winnerPlayerId);
       if (winnerPlayer) winnerPlayer.score += 1;
+      
+      // Update Gobbler specific team scores
+      if (winner === "X") gb.scores.X += 1;
+      else if (winner === "O") gb.scores.O += 1;
     } else {
       gb.currentTurn = gb.currentTurn === "X" ? "O" : "X";
     }
@@ -159,7 +163,8 @@ export class GobblerService {
       inventory: {
         X: this.createInitialInventory("X"),
         O: this.createInitialInventory("O"),
-      }
+      },
+      scores: room.gobblerState?.scores || { X: 0, O: 0 }
     };
 
     if (previousWinner === "DRAW" || !previousWinner) {

@@ -18,6 +18,10 @@ export interface GobblerState {
     X: GobblerPiece[];
     O: GobblerPiece[];
   };
+  scores: {
+    X: number;
+    O: number;
+  };
   winner?: PlayerSide | "DRAW";
   winningLine?: number[]; // indices of the winning line
 }

@@ -274,8 +274,21 @@ export function GobblerView() {
           </div>
 
           {/* Board Area */}
-          <div className="order-2 w-full max-w-[340px] sm:max-w-[420px] md:max-w-[460px] flex-shrink-0 relative my-2 sm:my-0 flex justify-center">
+          <div className="order-2 w-full max-w-[340px] sm:max-w-[420px] md:max-w-[460px] flex-shrink-0 relative my-2 sm:my-0 flex flex-col items-center">
             
+            {/* Scoreboard */}
+            <div className="flex items-center gap-4 bg-slate-900/60 backdrop-blur-md rounded-2xl px-6 py-3 border border-slate-700/50 shadow-lg mb-4 sm:mb-6">
+              <div className="flex flex-col items-center">
+                 <span className="text-cyan-400 font-black text-2xl sm:text-3xl leading-none">{gb.scores.X}</span>
+                 <span className="text-[10px] text-cyan-500/80 font-bold uppercase tracking-widest mt-1">Team X</span>
+              </div>
+              <div className="text-slate-500 font-bold text-xl px-2">-</div>
+              <div className="flex flex-col items-center">
+                 <span className="text-pink-400 font-black text-2xl sm:text-3xl leading-none">{gb.scores.O}</span>
+                 <span className="text-[10px] text-pink-500/80 font-bold uppercase tracking-widest mt-1">Team O</span>
+              </div>
+            </div>
+
             <div className="bg-slate-900/40 backdrop-blur-xl border border-slate-700/50 rounded-[2.5rem] p-4 sm:p-6 md:p-8 shadow-2xl w-full relative">
               {/* Turn Indicator inside board area */}
               {room.status === RoomStatus.PLAYING && (
