@@ -5,6 +5,7 @@ import { WhoKnowService } from './who-know/who-know.service';
 import { TicTacToeService } from './tic-tac-toe/tic-tac-toe.service';
 import { RPSService } from './rps/rps.service';
 import { GobblerService } from './gobbler/gobbler.service';
+import { SoundsFishyService } from './sounds-fishy/sounds-fishy.service';
 
 @Injectable()
 export class GamesService {
@@ -15,7 +16,8 @@ export class GamesService {
     private readonly whoKnowService: WhoKnowService,
     private readonly ticTacToeService: TicTacToeService,
     private readonly rpsService: RPSService,
-    private readonly gobblerService: GobblerService
+    private readonly gobblerService: GobblerService,
+    private readonly soundsFishyService: SoundsFishyService,
   ) {}
 
   createRoom(hostId: string, gameType: GameType = GameType.WHO_KNOW): RoomState {
@@ -181,9 +183,15 @@ export class GamesService {
 
   // --- Delegation to Game Services ---
   
-  assignRoles(code: string, requesterId: string): { room: RoomState, roles: Record<string, Role> } | null {
+  async assignRoles(code: string, requesterId: string): Promise<{ room: RoomState, roles: Record<string, Role> } | null> {
     const room = this.rooms.get(code);
     if (!room) return null;
+
+    if (room.gameType === GameType.SOUNDS_FISHY) {
+      const result = await this.soundsFishyService.assignRoles(room, requesterId);
+      if (result) this.rooms.set(code, result.room);
+      return result;
+    }
 
     if (room.gameType === GameType.RPS) {
       const result = this.rpsService.assignRoles(room, requesterId);
@@ -341,4 +349,70 @@ export class GamesService {
     if (updatedRoom) this.rooms.set(code, updatedRoom);
     return updatedRoom;
   }
+
+  // --- Sounds Fishy Logic ---
+  soundsFishyTypeAnswer(code: string, clientId: string, answer: string): RoomState | null {
+    const room = this.rooms.get(code);
+    if (!room) return null;
+    
+    const updatedRoom = this.soundsFishyService.typeAnswer(room, clientId, answer);
+    if (updatedRoom) this.rooms.set(code, updatedRoom);
+    return updatedRoom;
+  }
+
+  soundsFishySubmitAnswer(code: string, clientId: string, answer: string): RoomState | null {
+    const room = this.rooms.get(code);
+    if (!room) return null;
+    
+    const updatedRoom = this.soundsFishyService.submitAnswer(room, clientId, answer);
+    if (updatedRoom) this.rooms.set(code, updatedRoom);
+    return updatedRoom;
+  }
+
+  soundsFishyRevealPlayer(code: string, clientId: string, targetId: string): RoomState | null {
+    const room = this.rooms.get(code);
+    if (!room) return null;
+    
+    const updatedRoom = this.soundsFishyService.revealPlayer(room, clientId, targetId);
+    if (updatedRoom) this.rooms.set(code, updatedRoom);
+    return updatedRoom;
+  }
+
+  soundsFishyEliminatePlayer(code: string, clientId: string, targetId: string): RoomState | null {
+    const room = this.rooms.get(code);
+    if (!room) return null;
+    
+    const updatedRoom = this.soundsFishyService.eliminatePlayer(room, clientId, targetId);
+    if (updatedRoom) this.rooms.set(code, updatedRoom);
+    return updatedRoom;
+  }
+
+  soundsFishyBankPoints(code: string, clientId: string): RoomState | null {
+    const room = this.rooms.get(code);
+    if (!room) return null;
+    
+    const updatedRoom = this.soundsFishyService.bankPoints(room, clientId);
+    if (updatedRoom) this.rooms.set(code, updatedRoom);
+    return updatedRoom;
+  }
+
+  soundsFishyNextRound(code: string, clientId: string): RoomState | null {
+    const room = this.rooms.get(code);
+    if (!room) return null;
+    
+    const updatedRoom = this.soundsFishyService.nextRound(room, clientId);
+    if (updatedRoom) this.rooms.set(code, updatedRoom);
+    return updatedRoom;
+  }
+
+  soundsFishyReset(code: string, clientId: string): RoomState | null {
+    const room = this.rooms.get(code);
+    if (!room) return null;
+    
+    // We can reuse the same nextRound logic to reset back to lobby
+    const updatedRoom = this.soundsFishyService.nextRound(room, clientId);
+    if (updatedRoom) this.rooms.set(code, updatedRoom);
+    return updatedRoom;
+  }
 }
+

@@ -5,6 +5,7 @@ import { TicTacToeRules } from "./games/tic-tac-toe/TicTacToeRules";
 import { GobblerRules } from "./games/gobbler/GobblerRules";
 import { RPSRules } from "./games/rps/RPSRules";
 import { LobbyRules } from "./games/LobbyRules";
+import { SoundsFishyRules } from "./games/sounds-fishy/SoundsFishyRules";
 import { useTranslate } from "@/hooks/useTranslate";
 
 interface RulesModalProps {
@@ -36,6 +37,8 @@ export function RulesModal({ defaultGameType, isGameRoom }: RulesModalProps) {
         return <GobblerRules />;
       case GameType.RPS:
         return <RPSRules />;
+      case GameType.SOUNDS_FISHY:
+        return <SoundsFishyRules />;
       default:
         return null;
     }
@@ -79,6 +82,7 @@ export function RulesModal({ defaultGameType, isGameRoom }: RulesModalProps) {
                    <button onClick={() => setActiveTab(GameType.GOBBLER_TIC_TAC_TOE)} className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-colors ${activeTab === GameType.GOBBLER_TIC_TAC_TOE ? 'bg-blue-500/20 text-blue-400 shadow-inner border border-blue-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}>{t('rules.modal.tabs.gobbler')}</button>
                    <button onClick={() => setActiveTab(GameType.TIC_TAC_TOE)} className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-colors ${activeTab === GameType.TIC_TAC_TOE ? 'bg-zinc-500/20 text-zinc-400 shadow-inner border border-zinc-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}>{t('rules.modal.tabs.ticTacToe')}</button>
                    <button onClick={() => setActiveTab(GameType.RPS)} className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-colors ${activeTab === GameType.RPS ? 'bg-amber-500/20 text-amber-400 shadow-inner border border-amber-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}>{t('rules.modal.tabs.handDuel')}</button>
+                   <button onClick={() => setActiveTab(GameType.SOUNDS_FISHY)} className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-colors ${activeTab === GameType.SOUNDS_FISHY ? 'bg-purple-500/20 text-purple-400 shadow-inner border border-purple-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}>{t('rules.modal.tabs.soundsFishy')}</button>
                  </div>
               </div>
             )}

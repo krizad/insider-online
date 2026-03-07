@@ -34,6 +34,13 @@ interface GameState {
   gobblerPlacePiece: (pieceId: string, toIndex: number) => void;
   gobblerMovePiece: (fromIndex: number, toIndex: number) => void;
   gobblerReset: () => void;
+  soundsFishyTypeAnswer: (answer: string) => void;
+  soundsFishySubmitAnswer: (answer: string) => void;
+  soundsFishyRevealAnswer: (targetId: string) => void;
+  soundsFishyEliminatePlayer: (targetId: string) => void;
+  soundsFishyBankPoints: () => void;
+  soundsFishyNextRound: () => void;
+  soundsFishyReset: () => void;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -259,6 +266,55 @@ export const useGameStore = create<GameState>((set, get) => ({
     const { socket, room } = get();
     if (socket && room) {
       socket.emit(SOCKET_EVENTS.GOBBLER_RESET, { code: room.code });
+    }
+  },
+
+  soundsFishyTypeAnswer: (answer: string) => {
+    const { socket, room } = get();
+    if (socket && room) {
+      socket.emit(SOCKET_EVENTS.SOUNDS_FISHY_TYPE_ANSWER, { code: room.code, answer });
+    }
+  },
+
+  soundsFishySubmitAnswer: (answer: string) => {
+    const { socket, room } = get();
+    if (socket && room) {
+      socket.emit(SOCKET_EVENTS.SOUNDS_FISHY_SUBMIT_ANSWER, { code: room.code, answer });
+    }
+  },
+
+  soundsFishyRevealAnswer: (targetId: string) => {
+    const { socket, room } = get();
+    if (socket && room) {
+      socket.emit(SOCKET_EVENTS.SOUNDS_FISHY_REVEAL_ANSWER, { code: room.code, targetId });
+    }
+  },
+
+  soundsFishyEliminatePlayer: (targetId: string) => {
+    const { socket, room } = get();
+    if (socket && room) {
+      socket.emit(SOCKET_EVENTS.SOUNDS_FISHY_ELIMINATE_PLAYER, { code: room.code, targetId });
+    }
+  },
+
+  soundsFishyBankPoints: () => {
+    const { socket, room } = get();
+    if (socket && room) {
+      socket.emit(SOCKET_EVENTS.SOUNDS_FISHY_BANK_POINTS, { code: room.code });
+    }
+  },
+
+  soundsFishyNextRound: () => {
+    const { socket, room } = get();
+    if (socket && room) {
+      socket.emit(SOCKET_EVENTS.SOUNDS_FISHY_NEXT_ROUND, { code: room.code });
+    }
+  },
+
+  soundsFishyReset: () => {
+    const { socket, room } = get();
+    if (socket && room) {
+      socket.emit(SOCKET_EVENTS.SOUNDS_FISHY_RESET, { code: room.code });
     }
   }
 }));

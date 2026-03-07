@@ -2,6 +2,7 @@ import { TicTacToeState } from "./tic-tac-toe";
 import { RPSState } from "./rps";
 import { GobblerState } from "./gobbler-tic-tac-toe";
 import { WinningTeam, Role } from "./who-know";
+import { SoundsFishyState } from "./sounds-fishy";
 
 export enum RoomStatus {
   LOBBY = "LOBBY",
@@ -17,6 +18,7 @@ export enum GameType {
   TIC_TAC_TOE = "TIC_TAC_TOE",
   RPS = "RPS",
   GOBBLER_TIC_TAC_TOE = "GOBBLER_TIC_TAC_TOE",
+  SOUNDS_FISHY = "SOUNDS_FISHY",
 }
 
 // Socket Constants
@@ -50,6 +52,14 @@ export const SOCKET_EVENTS = {
   GOBBLER_PLACE: "gobbler_place",
   GOBBLER_MOVE: "gobbler_move",
   GOBBLER_RESET: "gobbler_reset",
+  // Sounds Fishy specific events
+  SOUNDS_FISHY_SUBMIT_ANSWER: "sounds_fishy_submit_answer",
+  SOUNDS_FISHY_REVEAL_ANSWER: "sounds_fishy_reveal_answer",
+  SOUNDS_FISHY_ELIMINATE_PLAYER: "sounds_fishy_eliminate_player",
+  SOUNDS_FISHY_BANK_POINTS: "sounds_fishy_bank_points",
+  SOUNDS_FISHY_RESET: "sounds_fishy_reset",
+  SOUNDS_FISHY_NEXT_ROUND: "sounds_fishy_next_round",
+  SOUNDS_FISHY_TYPE_ANSWER: "sounds_fishy_type_answer",
 } as const;
 
 export interface UserState {
@@ -85,6 +95,7 @@ export interface RoomState {
   ticTacToeState?: TicTacToeState;
   rpsState?: RPSState;
   gobblerState?: GobblerState;
+  soundsFishyState?: SoundsFishyState;
 }
 
 export interface AvailableRoom {

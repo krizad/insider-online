@@ -15,7 +15,8 @@ export const en: Dictionary = {
       whoKnow: "Who Know!",
       gobbler: "Gobbler Tic Tac Toe",
       ticTacToe: "Classic Tic Tac Toe",
-      handDuel: "Hand Duel"
+      handDuel: "Hand Duel",
+      soundsFishy: "Sounds Fishy"
     },
     or: "OR",
     roomCodePlaceholder: "ROOM CODE",
@@ -79,7 +80,8 @@ export const en: Dictionary = {
         whoKnow: "Who Know",
         gobbler: "Gobbler",
         ticTacToe: "Tic Tac Toe",
-        handDuel: "Hand Duel"
+        handDuel: "Hand Duel",
+        soundsFishy: "Sounds Fishy",
       },
       closeBtn: "Got it, let's play!"
     },
@@ -90,7 +92,8 @@ export const en: Dictionary = {
       whoKnowDesc: "A game of deduction and deception. One player is the Insider trying to guide the group to guess a secret word without being too obvious, while the Commoners try to figure out both the word and who the Insider is!",
       gobblerDesc: "A strategic twist on the classic game! Each player has pieces of different sizes that can \"gobble\" up smaller pieces. You can even move your pieces around the board!",
       ticTacToeDesc: "The timeless classic. Line up 3 of your marks in a row to win.",
-      handDuelDesc: "An intense, competitive version of Rock Paper Scissors. Play in 1v1 Round Robin or Chaotic All-at-Once modes!"
+      handDuelDesc: "An intense, competitive version of Rock Paper Scissors. Play in 1v1 Round Robin or Chaotic All-at-Once modes!",
+      soundsFishyDesc: "A fast-paced bluffing party game where one player tries to spot the liars."
     },
     whoKnow: {
       setupTitle: "The Setup",
@@ -152,6 +155,62 @@ export const en: Dictionary = {
       mode1v1Desc: "Players face off in a series of 1-on-1 duels until everyone has battled each other. Winning a duel gives you a point.",
       modeAllTitle: "All At Once",
       modeAllDesc: "Chaos reigns! All players throw at the same time. The winning sign is the one that beats the most other signs. If there's a tie, nobody scores. First to reach the target score wins!"
+    },
+    soundsFishy: {
+      title: "Sounds Fishy",
+      desc: "Fast-paced bluffing party game where everyone knows the real answer... except for one person. Can you spot the truth from the lies?",
+      rolesTitle: "Roles",
+      rolePicker: "The Picker",
+      rolePickerDesc: "Your job is to ask questions and figure out who is telling the truth (Blue Fish) and who is lying (Red Herrings).",
+      roleBlueFish: "Blue Fish",
+      roleBlueFishDesc: "You know the true answer to the question. You MUST provide the exact true answer.",
+      roleRedHerring: "Red Herring",
+      roleRedHerringDesc: "You see the real answer, but you MUST provide a believable fake answer.",
+      flowTitle: "Game Flow",
+      flowSetup: "The game assigns one Picker and one Blue Fish. The rest are Red Herrings.",
+      flowPitch: "The Picker reveals players' answers one by one.",
+      flowHunt: "After all answers are revealed, the Picker can choose to eliminate a player who looks fishy (a Red Herring) or bank the points.",
+      flowScore: "If the Picker eliminates the Blue Fish, they lose all points for the round, and the Blue Fish + surviving Red Herrings score.",
+      scoringTitle: "Scoring System",
+      scoreRedHerring: "Catch a Red Herring: +1 Point into the temporary pool.",
+      scoreBank: "Bank Points: End your turn immediately and secure the points in the pool.",
+      scoreBlueFish: "Catch the Blue Fish: You get 0 points. Blue Fish gets +1 for every surviving Red Herring. Each surviving Red Herring gets +1."
     }
+  },
+  gameSoundsFishy: {
+    loading: "Loading game state...",
+    yourRole: "Your Role",
+    rolePicker: "The Picker",
+    roleBlueFish: "Blue Fish (Truth)",
+    roleRedHerring: "Red Herring (Lie)",
+    currentPot: "Current Pot",
+    pts: "PTS",
+    setupPhase: "Setup Phase",
+    theTopic: "The Topic",
+    trueAnswer: "The True Answer",
+    waitingForFish: "Waiting for fish to write their answers...",
+    answerSubmitted: "Answer Submitted!",
+    waitingForOthers: "Waiting for others...",
+    mustEnterTrue: "You MUST enter the true answer exactly.",
+    mustEnterFake: "You MUST enter a believable fake answer. Don't use the exact truth!",
+    typeAnswerPlaceholder: "Type your answer here...",
+    submitAnswer: "Submit Answer",
+    otherFishesTyping: "Other Fishes are typing...",
+    revealEveryoneFirst: "Reveal EVERYONE's answer first to start the hunt!",
+    allRevealedEliminate: "All answers revealed! Now eliminate the Red Herrings.",
+    revealAnswer: "Reveal Answer",
+    eliminateLooksFishy: "Eliminate (Looks Fishy)",
+    eliminated: "Eliminated",
+    youHavePointsPrefix: "You have ",
+    youHavePointsSuffix: " points in the pot. You can bank them now and end the round, or keep hunting!",
+    bankPointsAndEnd: "Bank Points & End Round",
+    roundOver: "Round Over!",
+    howEveryoneScored: "Here's how everyone scored:",
+    pickerText: "Picker",
+    blueFishText: "Blue Fish",
+    redHerringText: "Red Herring",
+    plusPointsPrefix: "+",
+    plusPointsSuffix: " This Round",
+    playNextRound: "Play Next Round"
   }
 };

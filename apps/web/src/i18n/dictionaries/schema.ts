@@ -14,6 +14,7 @@ export interface Dictionary {
       gobbler: string;
       ticTacToe: string;
       handDuel: string;
+      soundsFishy: string;
     };
     or: string;
     roomCodePlaceholder: string;
@@ -78,6 +79,7 @@ export interface Dictionary {
         gobbler: string;
         ticTacToe: string;
         handDuel: string;
+        soundsFishy: string;
       };
       closeBtn: string;
     };
@@ -89,6 +91,7 @@ export interface Dictionary {
       gobblerDesc: string;
       ticTacToeDesc: string;
       handDuelDesc: string;
+      soundsFishyDesc: string;
     };
     whoKnow: {
       setupTitle: string;
@@ -151,5 +154,61 @@ export interface Dictionary {
       modeAllTitle: string;
       modeAllDesc: string;
     };
+    soundsFishy: {
+      title: string;
+      desc: string;
+      rolesTitle: string;
+      rolePicker: string;
+      rolePickerDesc: string;
+      roleBlueFish: string;
+      roleBlueFishDesc: string;
+      roleRedHerring: string;
+      roleRedHerringDesc: string;
+      flowTitle: string;
+      flowSetup: string;
+      flowPitch: string;
+      flowHunt: string;
+      flowScore: string;
+      scoringTitle: string;
+      scoreRedHerring: string;
+      scoreBank: string;
+      scoreBlueFish: string;
+    };
+  };
+  gameSoundsFishy: {
+    loading: string;
+    yourRole: string;
+    rolePicker: string;
+    roleBlueFish: string;
+    roleRedHerring: string;
+    currentPot: string;
+    pts: string;
+    setupPhase: string;
+    theTopic: string;
+    trueAnswer: string;
+    waitingForFish: string;
+    answerSubmitted: string;
+    waitingForOthers: string;
+    mustEnterTrue: string;
+    mustEnterFake: string;
+    typeAnswerPlaceholder: string;
+    submitAnswer: string;
+    otherFishesTyping: string;
+    revealEveryoneFirst: string;
+    allRevealedEliminate: string;
+    revealAnswer: string;
+    eliminateLooksFishy: string;
+    eliminated: string;
+    youHavePointsPrefix: string;
+    youHavePointsSuffix: string;
+    bankPointsAndEnd: string;
+    roundOver: string;
+    howEveryoneScored: string;
+    pickerText: string;
+    blueFishText: string;
+    redHerringText: string;
+    plusPointsPrefix: string;
+    plusPointsSuffix: string;
+    playNextRound: string;
   };
 }

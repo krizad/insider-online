@@ -144,8 +144,8 @@ export class GamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage(SOCKET_EVENTS.START_GAME)
-  handleStartGame(@MessageBody() data: { code: string }, @ConnectedSocket() client: Socket) {
-    const result = this.gamesService.assignRoles(data.code, client.id);
+  async handleStartGame(@MessageBody() data: { code: string }, @ConnectedSocket() client: Socket) {
+    const result = await this.gamesService.assignRoles(data.code, client.id);
     
     if (result) {
       // Broadcast updated room state
@@ -380,6 +380,98 @@ export class GamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
   ) {
     const room = this.gamesService.gobblerReset(data.code, client.id);
+    if (room) {
+      this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+      this.server.emit(SOCKET_EVENTS.AVAILABLE_ROOMS_UPDATED, this.gamesService.getAvailableRooms());
+    } else {
+      client.emit(SOCKET_EVENTS.ERROR, { message: 'Not authorized to reset game.' });
+    }
+  }
+
+  // --- Sounds Fishy Actions ---
+
+  @SubscribeMessage(SOCKET_EVENTS.SOUNDS_FISHY_TYPE_ANSWER)
+  handleSoundsFishyTypeAnswer(
+    @MessageBody() data: { code: string; answer: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = this.gamesService.soundsFishyTypeAnswer(data.code, client.id, data.answer);
+    if (room) {
+      this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+    }
+  }
+
+  @SubscribeMessage(SOCKET_EVENTS.SOUNDS_FISHY_SUBMIT_ANSWER)
+  handleSoundsFishySubmitAnswer(
+    @MessageBody() data: { code: string; answer: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = this.gamesService.soundsFishySubmitAnswer(data.code, client.id, data.answer);
+    if (room) {
+      this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+    } else {
+      client.emit(SOCKET_EVENTS.ERROR, { message: 'Invalid answer or not in submission phase.' });
+    }
+  }
+
+  @SubscribeMessage(SOCKET_EVENTS.SOUNDS_FISHY_REVEAL_ANSWER)
+  handleSoundsFishyRevealAnswer(
+    @MessageBody() data: { code: string; targetId: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = this.gamesService.soundsFishyRevealPlayer(data.code, client.id, data.targetId);
+    if (room) {
+      this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+    } else {
+      client.emit(SOCKET_EVENTS.ERROR, { message: 'Cannot reveal player.' });
+    }
+  }
+
+  @SubscribeMessage(SOCKET_EVENTS.SOUNDS_FISHY_ELIMINATE_PLAYER)
+  handleSoundsFishyEliminatePlayer(
+    @MessageBody() data: { code: string; targetId: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = this.gamesService.soundsFishyEliminatePlayer(data.code, client.id, data.targetId);
+    if (room) {
+      this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+    } else {
+      client.emit(SOCKET_EVENTS.ERROR, { message: 'Cannot eliminate player.' });
+    }
+  }
+
+  @SubscribeMessage(SOCKET_EVENTS.SOUNDS_FISHY_BANK_POINTS)
+  handleSoundsFishyBankPoints(
+    @MessageBody() data: { code: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = this.gamesService.soundsFishyBankPoints(data.code, client.id);
+    if (room) {
+      this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+    } else {
+      client.emit(SOCKET_EVENTS.ERROR, { message: 'Cannot bank points.' });
+    }
+  }
+
+  @SubscribeMessage(SOCKET_EVENTS.SOUNDS_FISHY_NEXT_ROUND)
+  handleSoundsFishyNextRound(
+    @MessageBody() data: { code: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = this.gamesService.soundsFishyNextRound(data.code, client.id);
+    if (room) {
+      this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+    } else {
+      client.emit(SOCKET_EVENTS.ERROR, { message: 'Cannot go to next round.' });
+    }
+  }
+
+  @SubscribeMessage(SOCKET_EVENTS.SOUNDS_FISHY_RESET)
+  handleSoundsFishyReset(
+    @MessageBody() data: { code: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = this.gamesService.soundsFishyReset(data.code, client.id);
     if (room) {
       this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
       this.server.emit(SOCKET_EVENTS.AVAILABLE_ROOMS_UPDATED, this.gamesService.getAvailableRooms());
