@@ -1,8 +1,15 @@
-# 🔍 WHO-KNOW: Real-time Game Controller
+# 🔍 WHO-KNOW: Real-time Multi-Game Hub
 
-**"Who knows the secret? Who's acting sus?"** โปรเจกต์เว็บแอปสำหรับคุมเกม Insider (Board Game) ที่เน้นความ Minimalist และ Real-time Experience สูงสุด พัฒนาด้วยสถาปัตยกรรม Monorepo
+**"Who knows the secret? Who's acting sus?"** โปรเจกต์เว็บแอปสำหรับคุมเกม Multiplayer แบบ Real-time ที่แต่ก่อนเริ่มต้นจากเกม Insider ตอนนี้ถูกพัฒนาให้เป็น Game Hub ที่รวบรวมเกมไว้หลายแบบ (Who Know, Gobbler, Tic Tac Toe, Hand Duel) เน้นความ Minimalist และ Real-time Experience สูงสุด พัฒนาด้วยสถาปัตยกรรม Monorepo
 
 **Live Demo:** [who-know-web.vercel.app](https://who-know-web.vercel.app/)
+
+## 🎮 Available Games
+
+- **Who Know!:** เกมทายคำแนว Social Deduction ตามหาว่าใครคือ Insider ("Who knows the secret? Who's acting sus?")
+- **Gobbler Tic-Tac-Toe:** เกม XO เวอร์ชั่นใหม่ที่สามารถเอาตัวที่ใหญ่กว่าทับตัวที่เล็กกว่าได้
+- **Classic Tic-Tac-Toe:** เกม XO คลาสสิก
+- **Hand Duel (Rock Paper Scissors):** เกมเป่ายิ้งฉุบแบบ Competitive เลือกจำนวนรอบและโหมดแข่งได้
 
 ## 🛠 Tech Stack
 
@@ -19,8 +26,9 @@
 ```text
 who-know/
 ├── apps/
-│   ├── web/                # Next.js Frontend (The Player's Screen)
+│   ├── web/                # Next.js Frontend (The Player's Screen & Game Lobby)
 │   │   ├── src/app/
+│   │   ├── src/components/games/ # Component ย่อยของแต่ละเกม
 │   │   └── src/store/      # Zustand store for real-time game state
 │   └── api/                # NestJS Backend (The Brain)
 │       ├── src/games/      # Game Logic & Socket.io Gateway
@@ -46,29 +54,29 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 enum RoomStatus {
   LOBBY
   WORD_SETTING
-  PLAYING
+  QUESTIONING
   VOTING
   RESULT
 }
 
 enum Role {
-  MASTER
-  INSIDER
-  COMMONER
+  Host
+  Know
+  Unknow
 }
 
 model Room {
-  id        String     @id @default(uuid())
-  code      String     @unique // Room code for friends to join
-  status    RoomStatus @default(LOBBY)
-  players   User[]
-  createdAt DateTime   @default(now())
+  id         String     @id @default(uuid())
+  code       String     @unique
+  status     RoomStatus @default(LOBBY)
+  roomHostId String
+  players    User[]
+  createdAt  DateTime   @default(now())
 }
 
 model User {
@@ -84,38 +92,35 @@ model User {
 
 ---
 
-## 🎮 Game Logic: The "Who Know" Protocol
+## 🎮 Game Logic: Multi-Game Protocol
 
-### 1. Secret Dispatcher
+### 1. Flexible Hub System
+เกมถูกพัฒนาให้เป็น Hub ศูนย์กลางด้วย Socket ห้องเดียว ที่แจกจ่ายลอจิกเฉพาะแต่ละเกม (GameType) ได้ เพียงแค่สร้างห้องเดียวก็สลับไปเล่นเกมอื่นได้
 
-ใช้ NestJS Gateway ในการแยกส่งข้อมูลบทบาทและคำลับ (Secret Word)
+### 2. Secret Dispatcher
+เวลาเล่น Who Know, ใช้ NestJS Gateway ในการแยกส่งข้อมูลบทบาทและคำลับ (Secret Word) เพื่อไม่ให้ผู้เล่นคนอื่นดักจับฝั่ง Client ได้
 
 ```typescript
 // apps/api/src/games/games.gateway.ts
 @SubscribeMessage('start_game')
 async handleStartGame(@MessageBody() data: { roomId: string }) {
-  const { master, insider, commoners } = await this.gameService.shuffle(data.roomId);
-
-  // ส่งบทบาทแบบ Private
-  this.server.to(master.socketId).emit('assign_role', { role: 'MASTER' });
-  this.server.to(insider.socketId).emit('assign_role', { role: 'INSIDER' });
-
-  commoners.forEach(p => {
-    this.server.to(p.socketId).emit('assign_role', { role: 'COMMONER' });
-  });
+  // สุ่มแล้วส่งบทบาทแบบ Private
+  this.server.to(host.socketId).emit('assign_role', { role: 'Host' });
+  this.server.to(know.socketId).emit('assign_role', { role: 'Know' }); // Insider
+  // ... แจก Unknow
 }
 ```
 
-### 2. Live Voting
-
-ระบบจะรวบรวมคะแนนโหวตและโชว์ผลลัพธ์แบบ Real-time เพื่อสร้างความตื่นเต้นระหว่างดีเบต
+### 3. Live State Processing
+รวบรวม Event โหวต, การลงหมาก (XO, Gobbler), และการออกสิทธิ์เป่ายิ้งฉุบ (RPS) ไปรวมที่ Server แล้ว Broadcast สถานะห้องล่าสุด (Room State) กลับให้ทุกคนด้วยความเร็วสูง สร้างความลื่นไหลระดับ Real-time
 
 ---
 
 ## 🚀 Future Roadmap
 
-- [ ] **Custom Game Rules:** ปรับเวลาถาม หรือจำนวน Insider ได้
-- [ ] **Global Leaderboard:** เก็บสถิตินักเนียนมือทอง
+- [ ] **Custom Game Rules:** ปรับเวลาถาม กฎกติกาเฉพาะแต่ละเกมได้
+- [ ] **Global Leaderboard:** เก็บสถิตินักเนียนมือทอง / แชมป์ XO
+- [ ] **More Party Games:** สร้างและนำเข้าบอร์ดเกมอื่น ๆ ต่อไป
 
 ## 📌 Getting Started
 

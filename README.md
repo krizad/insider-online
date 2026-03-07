@@ -1,20 +1,26 @@
-# Insider Online
+# WHO KNOW: Multiplayer Game Hub
 
-A multiplayer online adaptation of the popular social deduction board game "Insider". 
+A real-time multiplayer online platform featuring a collection of classic and social deduction games.
 
 **Live Demo:** [who-know-web.vercel.app](https://who-know-web.vercel.app/)
 Built as a modern web application within a Turborepo.
 
-## 🚀 Features
+## 🚀 Available Games
+
+- **Who Know!:** A social deduction game based on the board game "Insider". Who knows the secret? Who's acting sus?
+- **Gobbler Tic-Tac-Toe:** A strategic twist on the classic game where larger pieces can "gobble" smaller ones.
+- **Classic Tic-Tac-Toe:** The traditional game of X's and O's.
+- **Hand Duel:** A competitive Rock-Paper-Scissors game with multiple modes (1v1 Round Robin, All At Once) and Best-Of mechanics.
+
+## ✨ Core Features
 
 - **Real-time Multiplayer:** Play live with your friends using WebSockets.
-- **Role Assignment:** Automatically assigns Master, Insider, and Common roles.
-- **Game Phases:** Managed phases for questions, discussion, and voting.
+- **Flexible Room System:** One room, many games. Easily create lobbies, invite friends via code or QR, and switch games.
 - **Responsive Design:** Playable on both desktop and mobile devices.
 
 ## 🛠 Tech Stack
 
-- **Frontend:** Next.js (App Router), React, Tailwind CSS, Zustand
+- **Frontend:** Next.js (App Router), React, Tailwind CSS, Zustand, Shadcn/UI
 - **Backend:** NestJS, Socket.io
 - **Database:** Prisma ORM, PostgreSQL
 - **Monorepo:** Turborepo, pnpm
@@ -24,12 +30,12 @@ Built as a modern web application within a Turborepo.
 ```text
 who-know/
 ├── apps/
-│   ├── web/       # Next.js frontend application
-│   └── api/       # NestJS backend/websocket server
+│   ├── web/       # Next.js frontend application (Player screen & Lobby)
+│   └── api/       # NestJS backend/websocket server (Game logic & Rooms)
 ├── packages/
 │   ├── database/  # Prisma schema and generated client
 │   ├── config/    # Shared configuration (ESLint, TS, etc.)
-│   └── types/     # Shared TypeScript types across apps
+│   └── types/     # Shared TypeScript types & Game Constants
 └── docker-compose.yml # For setting up local dependencies (like DB)
 ```
 
