@@ -114,7 +114,7 @@ export function SoundsFishyView() {
              )}
 
              {/* Live typing display for non-pickers who are still answering */}
-             {state.typingAnswers && Object.keys(state.typingAnswers).length > 0 && (
+             {!isPicker && state.typingAnswers && Object.keys(state.typingAnswers).length > 0 && (
                  <div className="w-full mt-8 max-w-2xl mx-auto border-t border-slate-800 pt-6">
                      <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">{t('gameSoundsFishy.otherFishesTyping')}</p>
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -216,7 +216,9 @@ export function SoundsFishyView() {
                 {room.players.map(p => (
                    <div key={p.socketId} className="bg-slate-950 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
                       <div className="flex flex-col items-start">
-                         <span className="font-bold text-slate-200">{p.name}</span>
+                         <span className="font-bold text-slate-200">
+                             {p.name} {p.socketId === socketId && <span className="text-slate-400 font-normal">({t('lobby.you')})</span>}
+                         </span>
                          <span className="text-xs text-slate-500 font-medium">
                             {p.socketId === state.pickerId ? t('gameSoundsFishy.pickerText') : p.socketId === state.blueFishId ? t('gameSoundsFishy.blueFishText') : t('gameSoundsFishy.redHerringText')}
                          </span>

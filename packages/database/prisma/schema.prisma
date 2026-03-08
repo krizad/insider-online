@@ -40,8 +40,9 @@ model User {
 }
 
 model SoundsFishyQuestion {
-  id       String @id @default(uuid())
-  question String
-  answer   String
-  lang     String @default("th")
+  id          String @id @default(uuid())
+  question    String
+  answer      String
+  lang        String @default("th")
+  query_count Int    @default(0)
 }

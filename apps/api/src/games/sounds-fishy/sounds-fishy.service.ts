@@ -8,13 +8,32 @@ export class SoundsFishyService {
     if (room.players.length < 3) return null; // Need at least 3 players
     if (room.roomHostId !== requesterId) return null;
 
-    // Get a random question from DB
-    const questionsCount = await prisma.soundsFishyQuestion.count();
-    if (questionsCount === 0) return null; // No questions in DB
-    const skip = Math.floor(Math.random() * questionsCount);
-    const questionRecord = await prisma.soundsFishyQuestion.findFirst({ skip });
+    const minQueryCountResult = await prisma.soundsFishyQuestion.aggregate({
+      _min: { query_count: true },
+    });
     
-    if (!questionRecord) return null;
+    // If no questions in DB
+    if (minQueryCountResult._min.query_count === null) return null;
+
+    const minQueryCount = minQueryCountResult._min.query_count;
+
+    const questionsWithMinCount = await prisma.soundsFishyQuestion.findMany({
+      where: { query_count: minQueryCount },
+      select: { id: true, question: true, answer: true, lang: true },
+    });
+
+    if (questionsWithMinCount.length === 0) return null;
+
+    const randomIndex = Math.floor(Math.random() * questionsWithMinCount.length);
+    const questionRecord = questionsWithMinCount[randomIndex];
+
+    // Increment query_count for the chosen question
+    if (questionRecord) {
+      await prisma.soundsFishyQuestion.update({
+        where: { id: questionRecord.id },
+        data: { query_count: { increment: 1 } },
+      });
+    }
 
     // Assign roles randomly
     // 1 Picker, 1 Blue Fish, rest are Red Herrings
