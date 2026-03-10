@@ -1,9 +1,13 @@
 import { useGameStore } from "@/store/useGameStore";
 import { useTranslate } from "@/hooks/useTranslate";
+import { useState } from "react";
+import { ZoomIn } from "lucide-react";
+import { CardViewerModal } from "../CardViewerModal";
 
 export function DiscussionPhase() {
   const { room, socketId, detectiveClubNextPhase } = useGameStore();
   const { t } = useTranslate();
+  const [viewCardUrl, setViewCardUrl] = useState<string | null>(null);
 
   if (!room || !room.detectiveClubState) return null;
 
@@ -35,8 +39,15 @@ export function DiscussionPhase() {
                 <span className={`text-sm font-bold mb-2 truncate max-w-[100px] ${isMe ? 'text-indigo-400' : 'text-slate-300'}`}>{pName} {isMe && "(You)"}</span>
                 <div className="flex gap-2 min-h-[140px]">
                   {player.playedCards.map((cardUrl, idx) => (
-                    <div key={idx} className="relative w-24 h-32 sm:w-28 sm:h-40 rounded-lg overflow-hidden border-2 border-slate-700 shadow-md">
+                    <div 
+                      key={idx} 
+                      className="relative group w-24 h-32 sm:w-28 sm:h-40 rounded-lg overflow-hidden border-2 border-slate-700 shadow-md transform hover:scale-105 transition-transform cursor-pointer"
+                      onClick={() => setViewCardUrl(cardUrl)}
+                    >
                       <img src={cardUrl} alt="Played Card" className="w-full h-full object-cover border-4 border-white rounded-lg" />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                        <ZoomIn className="text-white w-6 h-6 shadow-sm" />
+                       </div>
                     </div>
                   ))}
                 </div>
@@ -61,6 +72,7 @@ export function DiscussionPhase() {
           Waiting for the host to start the voting phase...
         </div>
       )}
+      <CardViewerModal cardUrl={viewCardUrl} onClose={() => setViewCardUrl(null)} />
     </div>
   );
 }

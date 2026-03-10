@@ -1,10 +1,15 @@
 import { useGameStore } from "@/store/useGameStore";
 import { DetectiveClubPhase } from "@repo/types";
 import { useTranslate } from "@/hooks/useTranslate";
+import { useState } from "react";
+import { ZoomIn } from "lucide-react";
+import { CardViewerModal } from "../CardViewerModal";
 
 export function PlayingPhase() {
   const { room, socketId, detectiveClubPlayCard } = useGameStore();
   const { t } = useTranslate();
+  const [viewCardUrl, setViewCardUrl] = useState<string | null>(null);
+  const [confirmPlayIndex, setConfirmPlayIndex] = useState<number | null>(null);
 
   if (!room || !room.detectiveClubState) return null;
 
@@ -47,8 +52,15 @@ export function PlayingPhase() {
                 <span className={`text-sm font-bold mb-2 truncate max-w-[100px] ${isActive ? 'text-indigo-400' : 'text-slate-300'}`}>{pName}</span>
                 <div className="flex gap-2 min-h-[140px]">
                   {player.playedCards.map((cardUrl, idx) => (
-                    <div key={idx} className="relative w-20 h-28 sm:w-24 sm:h-32 rounded-lg overflow-hidden border-2 border-slate-700 shadow-md transform hover:scale-105 transition-transform cursor-pointer">
+                    <div 
+                      key={idx} 
+                      className="relative group w-20 h-28 sm:w-24 sm:h-32 rounded-lg overflow-hidden border-2 border-slate-700 shadow-md transform hover:scale-105 transition-transform cursor-pointer"
+                      onClick={() => setViewCardUrl(cardUrl)}
+                    >
                       <img src={cardUrl} alt="Played Card" className="w-full h-full object-cover border-4 border-white rounded-lg" />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                        <ZoomIn className="text-white w-6 h-6 shadow-sm" />
+                      </div>
                     </div>
                   ))}
                   {/* Empty slots for missing plays */}
@@ -74,26 +86,72 @@ export function PlayingPhase() {
         <h3 className="text-slate-400 font-bold uppercase tracking-widest text-xs mb-4 text-center mt-6">Your Hand</h3>
         <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-4 justify-start sm:justify-center items-center px-4">
           {myPlayer?.hand.map((cardUrl, idx) => (
-            <button
+            <div
               key={idx}
-              onClick={() => isMyTurn && detectiveClubPlayCard(idx)}
-              disabled={!isMyTurn}
               className={`relative group flex-shrink-0 w-24 h-36 sm:w-32 sm:h-48 rounded-xl overflow-hidden border-2 transition-all ${
                 isMyTurn 
-                  ? 'border-indigo-500/50 hover:border-indigo-400 hover:shadow-[0_0_20px_rgba(99,102,241,0.4)] hover:-translate-y-2 cursor-pointer' 
-                  : 'border-slate-700 opacity-60 cursor-not-allowed grayscale-[30%]'
+                  ? 'border-indigo-500/50 hover:border-indigo-400 hover:shadow-[0_0_20px_rgba(99,102,241,0.4)] hover:-translate-y-2' 
+                  : 'border-slate-700 opacity-80'
               }`}
             >
-              <img src={cardUrl} alt="Hand Card" className="w-full h-full object-cover border-4 border-white rounded-lg" />
-              {isMyTurn && (
-                <div className="absolute inset-0 bg-indigo-900/0 group-hover:bg-indigo-900/40 transition-colors flex items-center justify-center backdrop-blur-[0px] group-hover:backdrop-blur-[2px]">
-                   <span className="opacity-0 group-hover:opacity-100 bg-indigo-600 text-white text-xs font-black uppercase tracking-wider px-3 py-1.5 rounded-lg shadow-lg transform scale-90 group-hover:scale-100 transition-all">Play Card</span>
-                </div>
-              )}
-            </button>
+               <img src={cardUrl} alt="Hand Card" className="w-full h-full object-cover border-4 border-white rounded-lg" />
+               
+               {/* Play Action Area */}
+               {isMyTurn && (
+                 <div 
+                   className="absolute inset-0 bg-transparent group-hover:bg-indigo-900/40 transition-colors flex items-center justify-center backdrop-blur-[0px] group-hover:backdrop-blur-[2px] cursor-pointer"
+                   onClick={() => setConfirmPlayIndex(idx)}
+                 >
+                    <span className="opacity-0 group-hover:opacity-100 bg-indigo-600 text-white text-xs font-black uppercase tracking-wider px-3 py-1.5 rounded-lg shadow-lg transform scale-90 group-hover:scale-100 transition-all">Play</span>
+                 </div>
+               )}
+
+               {/* View Button */}
+               <button 
+                 onClick={(e) => { e.stopPropagation(); setViewCardUrl(cardUrl); }}
+                 className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-slate-700 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-md z-10"
+                 title="View larger"
+               >
+                 <ZoomIn className="w-4 h-4" />
+               </button>
+            </div>
           ))}
         </div>
       </div>
+      
+      {/* Confirmation Modal */}
+      {confirmPlayIndex !== null && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={() => setConfirmPlayIndex(null)}>
+          <div className="bg-slate-900 border-2 border-slate-700 rounded-xl max-w-sm w-full p-6 text-center shadow-2xl transform scale-100 transition-transform" onClick={e => e.stopPropagation()}>
+            <h2 className="text-xl font-black text-white mb-4">Confirm Card Play</h2>
+            <div className="flex justify-center mb-6">
+              <div className="w-32 h-44 rounded-lg overflow-hidden border-4 border-indigo-500 shadow-lg">
+                <img src={myPlayer?.hand[confirmPlayIndex]} alt="Selected Card" className="w-full h-full object-cover" />
+              </div>
+            </div>
+            <p className="text-slate-400 mb-6 font-medium">Are you sure you want to play this card?</p>
+            <div className="flex gap-4">
+              <button 
+                onClick={() => setConfirmPlayIndex(null)}
+                className="flex-1 py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg transition-colors border border-slate-600"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => {
+                  detectiveClubPlayCard(confirmPlayIndex);
+                  setConfirmPlayIndex(null);
+                }}
+                className="flex-1 py-3 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black rounded-lg transition-colors shadow-[0_0_15px_rgba(99,102,241,0.4)] border border-indigo-400"
+              >
+                Play Card
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <CardViewerModal cardUrl={viewCardUrl} onClose={() => setViewCardUrl(null)} />
     </div>
   );
 }

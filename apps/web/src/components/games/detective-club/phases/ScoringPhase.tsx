@@ -56,22 +56,33 @@ export function ScoringPhase() {
                         <span className={`font-bold ${isMe ? 'text-indigo-300' : 'text-slate-200'}`}>
                            {p.name} {isMe && "(You)"}
                         </span>
-                        <div className="flex items-center gap-2 mt-1">
-                           <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded border leading-none ${
-                               pState.role === 'INFORMER' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' : 
-                               pState.role === 'CONSPIRATOR' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 
-                               'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                           }`}>
-                              {pState.role}
-                           </span>
+                        <div className="flex flex-col gap-1 mt-1">
+                           <div className="flex items-center gap-2">
+                             <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded border leading-none ${
+                                 pState.role === 'INFORMER' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' : 
+                                 pState.role === 'CONSPIRATOR' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 
+                                 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                             }`}>
+                                {pState.role}
+                             </span>
+                           </div>
                            {pState.votedFor && (
-                              <span className="text-xs text-slate-500">Voted for: <span className="text-slate-400">{votedFor}</span></span>
+                              <span className="text-xs text-slate-400 bg-slate-800/50 px-2 py-1 rounded inline-block w-fit mt-1 border border-slate-700/50 shadow-inner">
+                                Voted for: <span className="text-rose-400 font-bold">{votedFor}</span>
+                              </span>
                            )}
                         </div>
                      </div>
-                     <span className="text-2xl font-black text-amber-500">
-                        {p.score} <span className="text-xs text-amber-500/50 uppercase tracking-widest">pts</span>
-                     </span>
+                     <div className="flex flex-col items-end">
+                       <span className="text-2xl font-black text-amber-500 leading-none">
+                          {p.score} <span className="text-sm text-amber-500/50 uppercase tracking-widest">pts</span>
+                       </span>
+                       {state.scoreDeltas && state.scoreDeltas[p.socketId] !== undefined && (
+                         <span className={`text-sm font-bold mt-1 ${state.scoreDeltas[p.socketId] > 0 ? 'text-emerald-400' : 'text-slate-500'}`}>
+                           {state.scoreDeltas[p.socketId] > 0 ? '+' : ''}{state.scoreDeltas[p.socketId]}
+                         </span>
+                       )}
+                     </div>
                   </div>
                )
             })}

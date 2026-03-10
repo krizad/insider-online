@@ -38,25 +38,27 @@ export class DetectiveClubService {
       this.logger.error('Failed to load detective club cards', error);
     }
   }
-  private getRandomCard(): string {
-    if (this.availableCards.length === 0) {
-      // Fallback if directory reading failed or empty
-      const randomNum = Math.floor(Math.random() * 76) + 1;
-      const paddedNum = randomNum.toString().padStart(3, '0');
-      return `/images/detective-club/card_${paddedNum}.jpg`;
-    }
+  private drawCards(state: DetectiveClubState, player: DetectiveClubPlayer, count: number) {
+    for (let i = 0; i < count; i++) {
+      if (!state.deck || state.deck.length === 0) {
+        // Reshuffle discard pile into deck, keeping an initial randomized state if empty
+        if (state.discardPile && state.discardPile.length > 0) {
+           state.deck = [...state.discardPile].sort(() => 0.5 - Math.random());
+           state.discardPile = [];
+        } else {
+           // Fallback: refill with all available cards if everything is empty
+           state.deck = [...this.availableCards].sort(() => 0.5 - Math.random());
+           state.discardPile = [];
+        }
+      }
 
-    const randomIndex = Math.floor(Math.random() * this.availableCards.length);
-    const filename = this.availableCards[randomIndex];
-    return `/images/detective-club/${filename}`;
-  }
-
-  private generateHand(size: number): string[] {
-    const hand: string[] = [];
-    for (let i = 0; i < size; i++) {
-      hand.push(this.getRandomCard());
+      const card = state.deck!.pop();
+      if (card) {
+        // Map filename to URL format if it isn't already (availableCards contains just filenames)
+        const cardUrl = card.startsWith('/') ? card : `/images/detective-club/${card}`;
+        player.hand.push(cardUrl);
+      }
     }
-    return hand;
   }
 
   startGame(room: RoomState, requesterId: string): RoomState | null {
@@ -70,22 +72,9 @@ export class DetectiveClubService {
     const conspirator = shuffledPlayers[1];
     const detectives = shuffledPlayers.slice(2);
 
+    const deck = [...this.availableCards].sort(() => 0.5 - Math.random());
+    const discardPile: string[] = [];
     const playersRecord: Record<string, DetectiveClubPlayer> = {};
-
-    shuffledPlayers.forEach((player) => {
-      let role = DetectiveClubRole.DETECTIVE;
-      if (player.socketId === informer.socketId) role = DetectiveClubRole.INFORMER;
-      if (player.socketId === conspirator.socketId) role = DetectiveClubRole.CONSPIRATOR;
-
-      playersRecord[player.socketId] = {
-        id: player.socketId,
-        role,
-        score: player.score || 0,
-        hand: this.generateHand(6),
-        playedCards: [],
-        votedFor: null,
-      };
-    });
 
     const state: DetectiveClubState = {
       currentPhase: DetectiveClubPhase.SETUP,
@@ -96,7 +85,26 @@ export class DetectiveClubService {
       players: playersRecord,
       playOrder: [], // Will be set when word is submitted
       round1StarterId: informer.socketId,
+      deck,
+      discardPile,
     };
+
+    shuffledPlayers.forEach((player) => {
+      let role = DetectiveClubRole.DETECTIVE;
+      if (player.socketId === informer.socketId) role = DetectiveClubRole.INFORMER;
+      if (player.socketId === conspirator.socketId) role = DetectiveClubRole.CONSPIRATOR;
+
+      playersRecord[player.socketId] = {
+        id: player.socketId,
+        role,
+        score: player.score || 0,
+        hand: [],
+        playedCards: [],
+        votedFor: null,
+      };
+      
+      this.drawCards(state, playersRecord[player.socketId], 5);
+    });
 
     room.status = RoomStatus.PLAYING;
     room.detectiveClubState = state;
@@ -145,8 +153,13 @@ export class DetectiveClubService {
 
     const playedCard = player.hand.splice(cardIndex, 1)[0]!;
     player.playedCards.push(playedCard);
-    // Draw a new card to replace it
-    player.hand.push(this.getRandomCard());
+    
+    // Add the specific played card to the discard pile (keep it by url or filename, we can just push the url)
+    if (!state.discardPile) state.discardPile = [];
+    state.discardPile.push(playedCard);
+
+    // Draw a new card to replace it (hand should maintain 5 cards)
+    this.drawCards(state, player, 1);
 
     // Next player
     const currentIndex = state.playOrder.indexOf(playerId);
@@ -211,6 +224,7 @@ export class DetectiveClubService {
   private calculateScore(room: RoomState) {
     const state = room.detectiveClubState!;
     state.currentPhase = DetectiveClubPhase.SCORING;
+    state.scoreDeltas = {};
 
     let conspiratorVotes = 0;
     const votingPlayers = Object.values(state.players).filter(p => p.role !== DetectiveClubRole.INFORMER);
@@ -230,13 +244,23 @@ export class DetectiveClubService {
       votingPlayers.forEach((p: DetectiveClubPlayer) => {
         if (p.role === DetectiveClubRole.DETECTIVE && p.votedFor === state.conspiratorId) {
           p.score += SCORE_DETECTIVE_WIN;
+          state.scoreDeltas![p.id] = SCORE_DETECTIVE_WIN;
         }
       });
     } else {
       // Conspirator wins
       state.players[state.conspiratorId!].score += SCORE_CONSPIRATOR_WIN;
       state.players[state.informerId!].score += SCORE_INFORMER_WIN;
+      state.scoreDeltas[state.conspiratorId!] = SCORE_CONSPIRATOR_WIN;
+      state.scoreDeltas[state.informerId!] = SCORE_INFORMER_WIN;
     }
+
+    // Initialize 0 deltas for players who didn't gain points
+    Object.values(state.players).forEach(p => {
+      if (state.scoreDeltas![p.id] === undefined) {
+        state.scoreDeltas![p.id] = 0;
+      }
+    });
 
     // Update RoomState players copy for consistency
     Object.values(state.players).forEach((p: DetectiveClubPlayer) => {
@@ -273,8 +297,11 @@ export class DetectiveClubService {
       if (p.id === nextConspiratorId) p.role = DetectiveClubRole.CONSPIRATOR;
       
       // Keep hand, keep score, reset playedCards and votedFor
-      // Refill hand to 6 if it isn't (it should be 6 because we draw after play, but let's be safe)
-      while (p.hand.length < 6) p.hand.push(this.getRandomCard());
+      // Refill hand to 5 if it isn't (it should be 5 because we draw after play, but let's be safe)
+      while (p.hand.length < 5) this.drawCards(state, p, 1);
+      
+      // All cards that were played this game should already be in discardPile.
+      // But let's actually make sure players keep their hands and nextRound logic does not reset them improperly
       p.playedCards = [];
       p.votedFor = null;
     });

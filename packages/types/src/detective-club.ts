@@ -28,7 +28,9 @@ export interface DetectiveClubState {
   conspiratorId: string | null;
   word: string | null;
   activePlayerId: string | null; // Whose turn is it to play a card
-  players: Record<string, DetectiveClubPlayer>;
   playOrder: string[]; // Order of socketIds for the round
   round1StarterId: string | null; // The informer starts round 1
+  scoreDeltas?: Record<string, number>; // Points gained in the current round
+  deck?: string[]; // Deck of cards to draw from
+  discardPile?: string[]; // Cards that have been played in previous rounds
 }

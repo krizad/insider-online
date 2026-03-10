@@ -1,11 +1,14 @@
 import { useGameStore } from "@/store/useGameStore";
 import { useState } from "react";
 import { useTranslate } from "@/hooks/useTranslate";
+import { ZoomIn } from "lucide-react";
+import { CardViewerModal } from "../CardViewerModal";
 
 export function VotingPhase() {
   const { room, socketId, detectiveClubVote } = useGameStore();
   const { t } = useTranslate();
   const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
+  const [viewCardUrl, setViewCardUrl] = useState<string | null>(null);
 
   if (!room || !room.detectiveClubState) return null;
 
@@ -72,10 +75,17 @@ export function VotingPhase() {
                 <div className="flex-1">
                    <span className={`text-lg font-bold ${selectedPlayer === pid ? 'text-rose-400' : 'text-slate-200'}`}>{pName}</span>
                 </div>
-                <div className="flex gap-1 opacity-80 pointer-events-none">
+                <div className="flex gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
                   {player.playedCards.map((cardUrl, idx) => (
-                    <div key={idx} className="w-10 h-14 rounded overflow-hidden border border-slate-700">
+                    <div 
+                      key={idx} 
+                      className="relative w-10 h-14 sm:w-16 sm:h-24 rounded overflow-hidden border border-slate-700 cursor-pointer transform hover:scale-110 transition-transform origin-bottom z-10"
+                      onClick={(e) => { e.stopPropagation(); setViewCardUrl(cardUrl); }}
+                    >
                       <img src={cardUrl} alt={`Card ${idx}`} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/0 hover:bg-black/40 transition-colors flex items-center justify-center opacity-0 hover:opacity-100">
+                         <ZoomIn className="text-white w-4 h-4 shadow-sm" />
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -94,6 +104,8 @@ export function VotingPhase() {
           </div>
         </div>
       )}
+      
+      <CardViewerModal cardUrl={viewCardUrl} onClose={() => setViewCardUrl(null)} />
     </div>
   );
 }
