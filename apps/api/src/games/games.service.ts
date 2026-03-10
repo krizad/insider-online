@@ -69,6 +69,7 @@ export class GamesService {
             { id: uuidv4(), side: "O", size: "MEDIUM" },
             { id: uuidv4(), side: "O", size: "MEDIUM" },
             { id: uuidv4(), side: "O", size: "LARGE" },
+            { id: uuidv4(), side: "O", size: "LARGE" },
           ],
         },
         scores: { X: 0, O: 0 }
