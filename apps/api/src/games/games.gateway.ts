@@ -479,4 +479,58 @@ export class GamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.emit(SOCKET_EVENTS.ERROR, { message: 'Not authorized to reset game.' });
     }
   }
+
+  // --- Detective Club Actions ---
+  
+  @SubscribeMessage(SOCKET_EVENTS.DETECTIVE_CLUB_SUBMIT_WORD)
+  handleDetectiveClubSubmitWord(
+    @MessageBody() data: { code: string; word: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = this.gamesService.detectiveClubSubmitWord(data.code, client.id, data.word);
+    if (room) {
+      this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+    } else {
+      client.emit(SOCKET_EVENTS.ERROR, { message: 'Cannot submit word' });
+    }
+  }
+
+  @SubscribeMessage(SOCKET_EVENTS.DETECTIVE_CLUB_PLAY_CARD)
+  handleDetectiveClubPlayCard(
+    @MessageBody() data: { code: string; cardIndex: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = this.gamesService.detectiveClubPlayCard(data.code, client.id, data.cardIndex);
+    if (room) {
+      this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+    } else {
+      client.emit(SOCKET_EVENTS.ERROR, { message: 'Invalid card play' });
+    }
+  }
+
+  @SubscribeMessage(SOCKET_EVENTS.DETECTIVE_CLUB_NEXT_PHASE)
+  handleDetectiveClubNextPhase(
+    @MessageBody() data: { code: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = this.gamesService.detectiveClubNextPhase(data.code, client.id);
+    if (room) {
+      this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+    } else {
+      client.emit(SOCKET_EVENTS.ERROR, { message: 'Cannot move to next phase' });
+    }
+  }
+
+  @SubscribeMessage(SOCKET_EVENTS.DETECTIVE_CLUB_VOTE)
+  handleDetectiveClubVote(
+    @MessageBody() data: { code: string; targetId: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = this.gamesService.detectiveClubVote(data.code, client.id, data.targetId);
+    if (room) {
+      this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+    } else {
+      client.emit(SOCKET_EVENTS.ERROR, { message: 'Invalid vote' });
+    }
+  }
 }

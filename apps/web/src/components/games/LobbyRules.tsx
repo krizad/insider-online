@@ -41,6 +41,13 @@ export function LobbyRules() {
                {t('rules.lobby.handDuelDesc')}
              </div>
           </li>
+          <li className="flex gap-3 items-start bg-slate-900/50 p-3 rounded-lg border border-slate-800">
+             <span className="text-slate-300 mt-0.5 flex-shrink-0 text-xl leading-none">🔍</span>
+             <div>
+               <strong className="text-slate-100 block mb-1">Detective Club</strong>
+               เกมแนว Bluffing + Dixit ใช้ภาพตีความ ทุกคนรู้คำศัพท์ ยกเว้น Conspirator ที่ต้องเนียนตามน้ำ!
+             </div>
+          </li>
         </ul>
       </div>
     </div>

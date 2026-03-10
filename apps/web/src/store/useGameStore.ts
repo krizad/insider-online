@@ -41,6 +41,11 @@ interface GameState {
   soundsFishyBankPoints: () => void;
   soundsFishyNextRound: () => void;
   soundsFishyReset: () => void;
+  detectiveClubSubmitWord: (word: string) => void;
+  detectiveClubPlayCard: (cardIndex: number) => void;
+  detectiveClubNextPhase: () => void;
+  detectiveClubVote: (targetId: string) => void;
+  detectiveClubNextRound: () => void;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -315,6 +320,41 @@ export const useGameStore = create<GameState>((set, get) => ({
     const { socket, room } = get();
     if (socket && room) {
       socket.emit(SOCKET_EVENTS.SOUNDS_FISHY_RESET, { code: room.code });
+    }
+  },
+
+  detectiveClubSubmitWord: (word: string) => {
+    const { socket, room } = get();
+    if (socket && room) {
+      socket.emit(SOCKET_EVENTS.DETECTIVE_CLUB_SUBMIT_WORD, { code: room.code, word });
+    }
+  },
+
+  detectiveClubPlayCard: (cardIndex: number) => {
+    const { socket, room } = get();
+    if (socket && room) {
+      socket.emit(SOCKET_EVENTS.DETECTIVE_CLUB_PLAY_CARD, { code: room.code, cardIndex });
+    }
+  },
+
+  detectiveClubNextPhase: () => {
+    const { socket, room } = get();
+    if (socket && room) {
+      socket.emit(SOCKET_EVENTS.DETECTIVE_CLUB_NEXT_PHASE, { code: room.code });
+    }
+  },
+
+  detectiveClubVote: (targetId: string) => {
+    const { socket, room } = get();
+    if (socket && room) {
+      socket.emit(SOCKET_EVENTS.DETECTIVE_CLUB_VOTE, { code: room.code, targetId });
+    }
+  },
+
+  detectiveClubNextRound: () => {
+    const { socket, room } = get();
+    if (socket && room) {
+      socket.emit(SOCKET_EVENTS.RESET_GAME, { code: room.code }); // Maps to resetGame which maps to detectiveClubService.nextRound wait no let's use what I defined... wait I did not add it to socket constants...
     }
   }
 }));

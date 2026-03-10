@@ -6,8 +6,9 @@ import { TicTacToeService } from './tic-tac-toe/tic-tac-toe.service';
 import { RPSService } from './rps/rps.service';
 import { GobblerService } from './gobbler/gobbler.service';
 import { SoundsFishyService } from './sounds-fishy/sounds-fishy.service';
+import { DetectiveClubService } from './detective-club/detective-club.service';
 
 @Module({
-  providers: [GamesGateway, GamesService, WhoKnowService, TicTacToeService, RPSService, GobblerService, SoundsFishyService]
+  providers: [GamesGateway, GamesService, WhoKnowService, TicTacToeService, RPSService, GobblerService, SoundsFishyService, DetectiveClubService]
 })
 export class GamesModule {}

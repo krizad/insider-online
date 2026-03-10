@@ -6,6 +6,7 @@ import { TicTacToeService } from './tic-tac-toe/tic-tac-toe.service';
 import { RPSService } from './rps/rps.service';
 import { GobblerService } from './gobbler/gobbler.service';
 import { SoundsFishyService } from './sounds-fishy/sounds-fishy.service';
+import { DetectiveClubService } from './detective-club/detective-club.service';
 
 @Injectable()
 export class GamesService {
@@ -18,6 +19,7 @@ export class GamesService {
     private readonly rpsService: RPSService,
     private readonly gobblerService: GobblerService,
     private readonly soundsFishyService: SoundsFishyService,
+    private readonly detectiveClubService: DetectiveClubService,
   ) {}
 
   createRoom(hostId: string, gameType: GameType = GameType.WHO_KNOW): RoomState {
@@ -104,6 +106,25 @@ export class GamesService {
           if (targetId === oldSocketId) {
             room.votes![voterId] = user.socketId;
           }
+        });
+      }
+
+      // Migrate detectiveClubState references from old socketId to new socketId
+      if (room.detectiveClubState) {
+        const dcState = room.detectiveClubState;
+        if (dcState.players[oldSocketId]) {
+          dcState.players[user.socketId] = dcState.players[oldSocketId];
+          dcState.players[user.socketId].id = user.socketId;
+          delete dcState.players[oldSocketId];
+        }
+        if (dcState.informerId === oldSocketId) dcState.informerId = user.socketId;
+        if (dcState.conspiratorId === oldSocketId) dcState.conspiratorId = user.socketId;
+        if (dcState.activePlayerId === oldSocketId) dcState.activePlayerId = user.socketId;
+        if (dcState.round1StarterId === oldSocketId) dcState.round1StarterId = user.socketId;
+        dcState.playOrder = dcState.playOrder.map(id => id === oldSocketId ? user.socketId : id);
+        // Update votedFor references
+        Object.values(dcState.players).forEach(p => {
+          if (p.votedFor === oldSocketId) p.votedFor = user.socketId;
         });
       }
     } else {
@@ -198,6 +219,12 @@ export class GamesService {
       if (result) this.rooms.set(code, result.room);
       return result;
     } 
+
+    if (room.gameType === GameType.DETECTIVE_CLUB) {
+      const updatedRoom = this.detectiveClubService.startGame(room, requesterId);
+      if (updatedRoom) this.rooms.set(code, updatedRoom);
+      return updatedRoom ? { room: updatedRoom, roles: {} } : null; // Roles handled internally
+    }
     
     // Default to WHO_KNOW
     const result = this.whoKnowService.assignRoles(room, requesterId);
@@ -411,6 +438,48 @@ export class GamesService {
     
     // We can reuse the same nextRound logic to reset back to lobby
     const updatedRoom = this.soundsFishyService.nextRound(room, clientId);
+    if (updatedRoom) this.rooms.set(code, updatedRoom);
+    return updatedRoom;
+  }
+
+  // --- Detective Club Actions ---
+  
+  detectiveClubSubmitWord(code: string, clientId: string, word: string): RoomState | null {
+    const room = this.rooms.get(code);
+    if (!room) return null;
+    const updatedRoom = this.detectiveClubService.submitWord(room, clientId, word);
+    if (updatedRoom) this.rooms.set(code, updatedRoom);
+    return updatedRoom;
+  }
+
+  detectiveClubPlayCard(code: string, clientId: string, cardIndex: number): RoomState | null {
+    const room = this.rooms.get(code);
+    if (!room) return null;
+    const updatedRoom = this.detectiveClubService.playCard(room, clientId, cardIndex);
+    if (updatedRoom) this.rooms.set(code, updatedRoom);
+    return updatedRoom;
+  }
+
+  detectiveClubNextPhase(code: string, clientId: string): RoomState | null {
+    const room = this.rooms.get(code);
+    if (!room) return null;
+    const updatedRoom = this.detectiveClubService.nextPhase(room, clientId);
+    if (updatedRoom) this.rooms.set(code, updatedRoom);
+    return updatedRoom;
+  }
+
+  detectiveClubVote(code: string, clientId: string, targetId: string): RoomState | null {
+    const room = this.rooms.get(code);
+    if (!room) return null;
+    const updatedRoom = this.detectiveClubService.submitVote(room, clientId, targetId);
+    if (updatedRoom) this.rooms.set(code, updatedRoom);
+    return updatedRoom;
+  }
+
+  detectiveClubNextRound(code: string, clientId: string): RoomState | null {
+    const room = this.rooms.get(code);
+    if (!room) return null;
+    const updatedRoom = this.detectiveClubService.nextRound(room, clientId);
     if (updatedRoom) this.rooms.set(code, updatedRoom);
     return updatedRoom;
   }

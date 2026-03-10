@@ -15,6 +15,7 @@ import { RPSView } from "@/components/games/rps/RPSView";
 import { WhoKnowView } from "@/components/games/who-know/WhoKnowView";
 import { GobblerView } from "@/components/games/gobbler/GobblerView";
 import { SoundsFishyView } from "@/components/games/sounds-fishy/SoundsFishyView";
+import { DetectiveClubView } from "@/components/games/detective-club/DetectiveClubView";
 import { useTranslate } from "@/hooks/useTranslate";
 
 // Components extracted to separate files
@@ -160,10 +161,15 @@ function GameLobby() {
                 <span className="text-xs tracking-wider text-center px-1">{t('lobby.gameNames.ticTacToe')}</span>
               </button>
             </div>
-            <div className="grid grid-cols-1 gap-3 mb-3">
-              <button onClick={() => createRoom(GameType.RPS)} disabled={!myName} className="w-full max-w-[50%] mx-auto bg-amber-600/80 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-colors shadow-lg border border-amber-500/50 flex flex-col items-center justify-center gap-1 group">
+            
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <button onClick={() => createRoom(GameType.RPS)} disabled={!myName} className="w-full bg-amber-600/80 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-colors shadow-lg border border-amber-500/50 flex flex-col items-center justify-center gap-1 group">
                 <span className="text-xl group-hover:scale-110 transition-transform">✌️✊✋</span>
                 <span className="text-xs tracking-wider text-center px-1">{t('lobby.gameNames.handDuel')}</span>
+              </button>
+              <button onClick={() => createRoom(GameType.DETECTIVE_CLUB)} disabled={!myName} className="w-full bg-slate-700/80 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-colors shadow-lg border border-slate-600/50 flex flex-col items-center justify-center gap-1 group">
+                <span className="text-xl group-hover:scale-110 transition-transform">🔍</span>
+                <span className="text-xs tracking-wider text-center px-1">Detective Club</span>
               </button>
             </div>
 
@@ -222,7 +228,7 @@ function GameLobby() {
                       <div className="text-slate-200 font-bold tracking-widest text-lg leading-none mb-1 group-hover:text-indigo-300 transition-colors flex items-center gap-2">
                         {r.code}
                         <span className={`text-[9px] px-1.5 py-0.5 rounded border leading-none ml-2 tracking-normal font-sans ${r.gameType === GameType.GOBBLER_TIC_TAC_TOE || r.gameType === GameType.TIC_TAC_TOE ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : r.gameType === GameType.RPS ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'}`}>
-                          {r.gameType === GameType.GOBBLER_TIC_TAC_TOE ? t('lobby.gameNames.gobbler').toUpperCase() : r.gameType === GameType.TIC_TAC_TOE ? t('lobby.gameNames.ticTacToe').toUpperCase() : r.gameType === GameType.RPS ? t('lobby.gameNames.handDuel').toUpperCase() : t('lobby.gameNames.whoKnow').toUpperCase()}
+                          {r.gameType === GameType.GOBBLER_TIC_TAC_TOE ? t('lobby.gameNames.gobbler').toUpperCase() : r.gameType === GameType.TIC_TAC_TOE ? t('lobby.gameNames.ticTacToe').toUpperCase() : r.gameType === GameType.RPS ? t('lobby.gameNames.handDuel').toUpperCase() : r.gameType === GameType.DETECTIVE_CLUB ? 'DETECTIVE CLUB' : r.gameType === GameType.SOUNDS_FISHY ? 'SOUNDS FISHY' : t('lobby.gameNames.whoKnow').toUpperCase()}
                         </span>
                       </div>
                       <div className="text-slate-500 text-[10px] font-medium uppercase mt-0.5 tracking-wider flex items-center gap-1.5">
@@ -261,7 +267,7 @@ function GameLobby() {
             <img src="/icon.png" alt="Logo" className="w-8 h-8 rounded-lg shadow-sm border border-slate-700" />
             <div className="flex flex-col">
               <span className="text-xs font-black tracking-widest text-slate-500 uppercase leading-none mb-0.5 hidden sm:block">
-               {room.gameType === GameType.GOBBLER_TIC_TAC_TOE ? t('lobby.gameNames.gobbler') : room.gameType === GameType.TIC_TAC_TOE ? t('lobby.gameNames.ticTacToe') : room.gameType === GameType.RPS ? t('lobby.gameNames.handDuel') : room.gameType === GameType.SOUNDS_FISHY ? "Sounds Fishy" : t('lobby.gameNames.whoKnow')}
+               {room.gameType === GameType.GOBBLER_TIC_TAC_TOE ? t('lobby.gameNames.gobbler') : room.gameType === GameType.TIC_TAC_TOE ? t('lobby.gameNames.ticTacToe') : room.gameType === GameType.RPS ? t('lobby.gameNames.handDuel') : room.gameType === GameType.SOUNDS_FISHY ? "Sounds Fishy" : room.gameType === GameType.DETECTIVE_CLUB ? 'Detective Club' : t('lobby.gameNames.whoKnow')}
               </span>
               <span className="text-xl sm:text-2xl font-black tracking-widest text-indigo-400 leading-none">{room.code}</span>
             </div>
@@ -327,6 +333,8 @@ function GameLobby() {
           <RPSView />
         ) : room.gameType === GameType.SOUNDS_FISHY && room.status !== RoomStatus.LOBBY ? (
           <SoundsFishyView />
+        ) : room.gameType === GameType.DETECTIVE_CLUB && room.status !== RoomStatus.LOBBY ? (
+          <DetectiveClubView />
         ) : (
           <div className="flex-1 min-h-0 flex flex-col md:flex-row gap-2 sm:gap-4">
             {/* Left: Players Table */}
@@ -476,8 +484,8 @@ function GameLobby() {
                 )}
 
                 {useGameStore.getState().socketId === room.roomHostId ? (
-                  <button onClick={startGame} disabled={room.players.length < (room.gameType === GameType.WHO_KNOW ? 4 : room.gameType === GameType.SOUNDS_FISHY ? 4 : 2)} className="w-full max-w-xs bg-green-600 hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-lg py-4 rounded-xl transition-colors uppercase tracking-widest shadow-lg shadow-green-900/20">
-                    {room.players.length < (room.gameType === GameType.WHO_KNOW ? 4 : room.gameType === GameType.SOUNDS_FISHY ? 4 : 2) ? t('lobby.waitingMin', { count: room.gameType === GameType.WHO_KNOW ? 4 : room.gameType === GameType.SOUNDS_FISHY ? 4 : 2 }) : t('lobby.startGame')}
+                  <button onClick={startGame} disabled={room.players.length < (room.gameType === GameType.WHO_KNOW ? 4 : room.gameType === GameType.SOUNDS_FISHY ? 4 : room.gameType === GameType.DETECTIVE_CLUB ? 3 : 2)} className="w-full max-w-xs bg-green-600 hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black text-lg py-4 rounded-xl transition-colors uppercase tracking-widest shadow-lg shadow-green-900/20">
+                    {room.players.length < (room.gameType === GameType.WHO_KNOW ? 4 : room.gameType === GameType.SOUNDS_FISHY ? 4 : room.gameType === GameType.DETECTIVE_CLUB ? 3 : 2) ? t('lobby.waitingMin', { count: room.gameType === GameType.WHO_KNOW ? 4 : room.gameType === GameType.SOUNDS_FISHY ? 4 : room.gameType === GameType.DETECTIVE_CLUB ? 3 : 2 }) : t('lobby.startGame')}
                   </button>
                 ) : (
                   <div className="w-full max-w-xs bg-slate-800/50 text-slate-400 border border-slate-800 font-bold text-sm py-4 rounded-xl text-center uppercase tracking-widest">{t('lobby.waitingForHost')}</div>

@@ -4,3 +4,4 @@ export * from "./tic-tac-toe";
 export * from "./rps";
 export * from "./gobbler-tic-tac-toe";
 export * from "./sounds-fishy";
+export * from "./detective-club";

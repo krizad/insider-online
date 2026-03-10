@@ -1,0 +1,64 @@
+{
+  "surrealism_prompts": {
+    "nature_and_landscape": [
+      { "id": 1, "title": "The Cosmic Lighthouse", "prompt": "A majestic lighthouse standing on a small planetoid, projecting a beam of swirling galaxies into the deep space sky. The sea below is made of stardust." },
+      { "id": 2, "title": "The Cloud Shepherd", "prompt": "A giant, gentle figure made of cotton clouds, walking across a rolling green landscape, guiding a flock of tiny, glowing sheep (which are actually stars)." },
+      { "id": 3, "title": "The Dessert Desert", "prompt": "A vast desert where sand dunes are actually mounds of colored sugar, and giant lollipops and candy canes grow like cacti. A melting ice cream cone sun is in the sky." },
+      { "id": 4, "title": "The Jellyfish Forest", "prompt": "A dense forest where the trees have glowing, translucent jellyfish caps for leaves. Tiny, miniature whales are swimming between the branches." },
+      { "id": 5, "title": "The Crystal Waterfall", "prompt": "A cascading waterfall where the water has solidified into an infinite stream of sparkling, multifaceted crystals. A rainbow is refracted through it, forming a bridge." },
+      { "id": 6, "title": "The Season-Spilling Tree", "prompt": "A giant ancient tree. From one branch, spring flowers bloom; from another, summer sunbeams fall; a third sheds autumn leaves; and the fourth is covered in winter snow." },
+      { "id": 7, "title": "The Mirror Lake", "prompt": "A perfectly still lake that reflects not the forest surrounding it, but a vibrant, bustling city from a different dimension." },
+      { "id": 8, "title": "The Piano Bridge", "prompt": "A suspension bridge made entirely of white and black piano keys, spanning a chasm. Miniature musical notes are floating along the cables." },
+      { "id": 9, "title": "The Sky-Whale Ocean", "prompt": "A colossal whale, its skin depicting an entire deep-sea ecosystem, breaching through a sea of swirling clouds." },
+      { "id": 10, "title": "The Clockwork Garden", "prompt": "A botanical garden where flowers have gears for petals, vines are made of copper wires, and a grandfather clock functions as the central tree." }
+    ],
+    "items_and_machines": [
+      { "id": 11, "title": "The Melting Timepiece", "prompt": "A vintage pocket watch melting like candle wax over the edge of a cosmic bookshelf, dripping time." },
+      { "id": 12, "title": "The Book of Doors", "prompt": "An ancient, open book where each page is a tiny, miniature door leading to a different world (a jungle, a city, a desert)." },
+      { "id": 13, "title": "The Steam-Powered Dragon", "prompt": "A mechanical dragon made of copper, brass, and gears, sitting atop a pile of antique treasures, with steam rising from its nostrils." },
+      { "id": 14, "title": "The Camera-Eyed Owl", "prompt": "A wise owl with antique camera lenses for eyes, its feathers made of film strips, perched on a tripod in a mystical library." },
+      { "id": 15, "title": "The Dream-Catching Net", "prompt": "A delicate, glowing dreamcatcher net, made of starlight filaments, with tiny captured scenes (a hot air balloon, a ship) hanging from it." },
+      { "id": 16, "title": "The Teacup Sea", "prompt": "A vintage ceramic teacup overflowing with a perfect, miniature stormy ocean. A tiny paper boat is navigating the waves." },
+      { "id": 17, "title": "The Telephone Booth Portal", "prompt": "A red telephone booth sitting alone in a deep forest. The door is slightly ajar, revealing a swirling vortex of neon lights inside." },
+      { "id": 18, "title": "The Umbrella City", "prompt": "An open umbrella, held by an unseen hand, whose canopy is actually a detailed, bustling miniature cityscape." },
+      { "id": 19, "title": "The Mechanical Heart", "prompt": "A highly intricate mechanical heart made of gold, glass, and jewels, with visible gears turning and tiny, glowing energy tubes." },
+      { "id": 20, "title": "The Galaxy-Spilling Jar", "prompt": "A glass mason jar tipped over, spilling a colorful galaxy of stars, nebulae, and small planets onto a dark, velvet surface." }
+    ],
+    "characters_and_figures": [
+      { "id": 21, "title": "The Star-Thread Seamstress", "prompt": "A woman with a face of stars, using a golden needle to sew together a tapestry made of cosmic dust and fabric." },
+      { "id": 22, "title": "The Masked Violinist", "prompt": "A musician wearing an elaborate, theatrical mask, playing a violin. Instead of notes, tiny glowing butterflies are emerging from the f-holes." },
+      { "id": 23, "title": "The Balloon-Headed Philosopher", "prompt": "A thinker whose head is a giant, colorful cluster of helium balloons, floating slightly above their body, while they are reading a book." },
+      { "id": 24, "title": "The Tree-Spirit Guardian", "prompt": "A forest protector made of ancient wood and moss, its antlers holding a miniature, glowing ecosystem of birds and flowers." },
+      { "id": 25, "title": "The Hourglass-Heart Traveler", "prompt": "A vagabond whose chest is a large hourglass, with sand visibly flowing through it, carrying a satchel overflowing with world maps." },
+      { "id": 26, "title": "The Key-Keeper Monk", "prompt": "An old monk whose robes are made of thousands of different keys, walking down an endless hallway of doors." },
+      { "id": 27, "title": "The Cloud-Knitting Grandparent", "prompt": "An elderly figure sitting on a giant cloud, using massive knitting needles to create a blanket made of fluffy cirrus clouds." },
+      { "id": 28, "title": "The Navigator of the Sky", "prompt": "A sailor standing on the deck of a ship. Instead of sails, the ship is pulled by a giant flock of colorful hot air balloons." },
+      { "id": 29, "title": "The Jester of Worlds", "prompt": "A performer juggling multiple colorful, glowing globes, each globe showing a different habitable planet." },
+      { "id": 30, "title": "The Paper-Origami Samurai", "prompt": "A stoic warrior made entirely of intricate white origami paper, standing under a cherry blossom tree shedding pink paper petals." }
+    ],
+    "buildings_and_structures": [
+      { "id": 31, "title": "The Vertical City", "prompt": "A city built not horizontally, but vertically, spiraling around a massive central column that reaches up into the stratosphere." },
+      { "id": 32, "title": "The Treehouse Mansion", "prompt": "An elaborate Victorian-style mansion built high within the branches of a colossal oak tree, connected by multiple rope bridges." },
+      { "id": 33, "title": "The Underwater Cathedral", "prompt": "An ancient, grand cathedral submerged in a deep ocean, with rays of blue light filtering through the stained glass windows, surrounded by fish." },
+      { "id": 34, "title": "The Sandcastle Metropolis", "prompt": "An impossibly detailed sandcastle built on a beach, complete with tiny glass windows and functional drawbridges." },
+      { "id": 35, "title": "The Floating Island Library", "prompt": "An island made of overgrown ruins and massive stone books, floating gently in the sky, accessible only by airship." },
+      { "id": 36, "title": "The Gear-Turning Clocktower", "prompt": "A massive clocktower where the entire structure is a single, exposed mechanical entity, with visible, massive turning gears." },
+      { "id": 37, "title": "The Lighthouse of Dreams", "prompt": "A lighthouse built on a small, isolated cloud, projecting beams of colorful dreams onto the sleeping city below." },
+      { "id": 38, "title": "The Bridge of Keys", "prompt": "A bridge made entirely of mismatched vintage keys, spanning a deep canyon." },
+      { "id": 39, "title": "The Lantern-Lit Village", "prompt": "A quaint village where the houses are built inside giant, hanging paper lanterns, suspended from invisible threads in a dark sky." },
+      { "id": 40, "title": "The Infinite Stairs", "prompt": "A winding stone staircase that spirals endlessly upwards into a golden light, with no visible end." }
+    ],
+    "abstract_and_concepts": [
+      { "id": 41, "title": "The Sea of Unwritten Letters", "prompt": "A vast ocean made of crumpled paper and envelopes. A lighthouse in the distance is projecting blank light." },
+      { "id": 42, "title": "The Tangled Path of Memories", "prompt": "A labyrinth made of multicolored ribbons and strings, with small, glowing orbs (representing memories) hanging from them." },
+      { "id": 43, "title": "The Balance of Elements", "prompt": "An antique scale where one side holds a burning sun and the other a giant drop of water, perfectly balanced." },
+      { "id": 44, "title": "The Shattered Symmetry", "prompt": "A beautiful, symmetrical portrait (e.g., a face) that is cracked like a mirror, with each piece reflecting a slightly different reality." },
+      { "id": 45, "title": "The Prism of Emotions", "prompt": "A diamond prism that is refracting a single beam of light into a spectrum of different, vibrant colors, each color with a different emoji-like face in it." },
+      { "id": 46, "title": "The Whispering Shadows", "prompt": "Shadows of people projected onto a wall, but the shadows themselves are independent entities, discussing things and interacting." },
+      { "id": 47, "title": "The Harvest of Stars", "prompt": "A farmer in a field of tall grass, using a scythe to harvest tiny, glowing stars that are scattered on the ground." },
+      { "id": 48, "title": "The Loom of Time", "prompt": "An ancient loom where the fabric being woven is a visual timeline of historical events (pyramids, castles, spaceships)." },
+      { "id": 49, "title": "The Echo Chamber", "prompt": "A surreal room filled with floating, open mouths, each mouth projecting a different word in glowing, smoky text." },
+      { "id": 50, "title": "The Threshold of Worlds", "prompt": "A simple door frame standing alone in a desert, showing a lush, green forest on the other side." }
+    ]
+  }
+}
