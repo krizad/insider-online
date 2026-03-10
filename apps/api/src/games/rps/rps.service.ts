@@ -39,9 +39,10 @@ export class RPSService {
 
     rps.choices[clientId] = choice;
 
-    const allChosen = rps.activePlayers.every(id => !!rps.choices[id]);
+    const activeAndConnectedIds = rps.activePlayers.filter(id => room.players.find(p => p.socketId === id && p.connected !== false));
+    const allChosen = activeAndConnectedIds.every(id => !!rps.choices[id]);
 
-    if (allChosen) {
+    if (allChosen && activeAndConnectedIds.length > 0) {
       if (room.config.rpsMode === "ALL_AT_ONCE") {
         this.resolveAllAtOnceRound(room);
       } else {

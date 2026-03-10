@@ -33,4 +33,5 @@ export interface DetectiveClubState {
   scoreDeltas?: Record<string, number>; // Points gained in the current round
   deck?: string[]; // Deck of cards to draw from
   discardPile?: string[]; // Cards that have been played in previous rounds
+  players: Record<string, DetectiveClubPlayer>; // Player states
 }

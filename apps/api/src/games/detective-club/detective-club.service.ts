@@ -153,29 +153,38 @@ export class DetectiveClubService {
 
     const playedCard = player.hand.splice(cardIndex, 1)[0]!;
     player.playedCards.push(playedCard);
-    
-    // Add the specific played card to the discard pile (keep it by url or filename, we can just push the url)
-    if (!state.discardPile) state.discardPile = [];
-    state.discardPile.push(playedCard);
 
     // Draw a new card to replace it (hand should maintain 5 cards)
     this.drawCards(state, player, 1);
 
-    // Next player
+    // Next active player
     const currentIndex = state.playOrder.indexOf(playerId);
-    const nextIndex = (currentIndex + 1) % state.playOrder.length;
+    let nextIndex = (currentIndex + 1) % state.playOrder.length;
+    let nextPlayerId = state.playOrder[nextIndex];
     
-    // Check if round is over
-    if (nextIndex === 0) { // Back to the starter of the round
+    // Skip disconnected players to avoid soft-lock
+    const activePlayerIds = new Set(room.players.filter(p => p.connected !== false).map(p => p.socketId));
+    let skippedCount = 0;
+    while (!activePlayerIds.has(nextPlayerId) && skippedCount < state.playOrder.length) {
+      nextIndex = (nextIndex + 1) % state.playOrder.length;
+      nextPlayerId = state.playOrder[nextIndex];
+      skippedCount++;
+    }
+
+    // Check if round is over (back to the starter of the round, or the next available player if starter left)
+    // Actually, round is over when we've cycled back to the starting position (index 0 is starter).
+    // If nextIndex wrap-around or skipped over 0, we move to the next phase.
+    if (nextIndex <= currentIndex && skippedCount > 0 || nextIndex === 0) {
       if (state.currentPhase === DetectiveClubPhase.PLAYING_ROUND_1) {
         state.currentPhase = DetectiveClubPhase.PLAYING_ROUND_2;
-        state.activePlayerId = state.playOrder[0]; // Informer starts again
+        // Informer starts again, or next active
+        state.activePlayerId = state.playOrder.find(id => activePlayerIds.has(id)) || state.playOrder[0];
       } else {
         state.currentPhase = DetectiveClubPhase.DISCUSSION;
-        state.activePlayerId = state.playOrder[0]; // Informer starts explaining
+        state.activePlayerId = state.playOrder.find(id => activePlayerIds.has(id)) || state.playOrder[0];
       }
     } else {
-      state.activePlayerId = state.playOrder[nextIndex];
+      state.activePlayerId = nextPlayerId;
     }
 
     return room;
@@ -211,10 +220,12 @@ export class DetectiveClubService {
     player.votedFor = targetId;
 
     // Check if everyone (except Informer) has voted
-    const votingPlayers = Object.values(state.players).filter(p => p.role !== DetectiveClubRole.INFORMER);
+    // Only wait for players who are still in the room to prevent softlocks
+    const activePlayerIds = new Set(room.players.map(p => p.socketId));
+    const votingPlayers = Object.values(state.players).filter(p => p.role !== DetectiveClubRole.INFORMER && activePlayerIds.has(p.id));
     const allVoted = votingPlayers.every(p => p.votedFor !== null);
 
-    if (allVoted) {
+    if (allVoted && votingPlayers.length > 0) {
       this.calculateScore(room);
     }
 
@@ -239,20 +250,24 @@ export class DetectiveClubService {
     const SCORE_CONSPIRATOR_WIN = 5;
     const SCORE_INFORMER_WIN = 4;
 
-    if (conspiratorVotes > 1) {
-      // Detectives win
-      votingPlayers.forEach((p: DetectiveClubPlayer) => {
-        if (p.role === DetectiveClubRole.DETECTIVE && p.votedFor === state.conspiratorId) {
-          p.score += SCORE_DETECTIVE_WIN;
-          state.scoreDeltas![p.id] = SCORE_DETECTIVE_WIN;
-        }
-      });
-    } else {
-      // Conspirator wins
-      state.players[state.conspiratorId!].score += SCORE_CONSPIRATOR_WIN;
-      state.players[state.informerId!].score += SCORE_INFORMER_WIN;
-      state.scoreDeltas[state.conspiratorId!] = SCORE_CONSPIRATOR_WIN;
-      state.scoreDeltas[state.informerId!] = SCORE_INFORMER_WIN;
+    // Detectives who voted correctly ALWAYS get 3 points
+    votingPlayers.forEach((p: DetectiveClubPlayer) => {
+      if (p.role === DetectiveClubRole.DETECTIVE && p.votedFor === state.conspiratorId) {
+        p.score += SCORE_DETECTIVE_WIN;
+        state.scoreDeltas![p.id] = SCORE_DETECTIVE_WIN;
+      }
+    });
+
+    // If 1 or fewer players guessed the conspirator, Conspirator and Informer win
+    if (conspiratorVotes <= 1) {
+      if (state.players[state.conspiratorId!]) {
+        state.players[state.conspiratorId!].score += SCORE_CONSPIRATOR_WIN;
+        state.scoreDeltas![state.conspiratorId!] = (state.scoreDeltas![state.conspiratorId!] || 0) + SCORE_CONSPIRATOR_WIN;
+      }
+      if (state.players[state.informerId!]) {
+        state.players[state.informerId!].score += SCORE_INFORMER_WIN;
+        state.scoreDeltas![state.informerId!] = (state.scoreDeltas![state.informerId!] || 0) + SCORE_INFORMER_WIN;
+      }
     }
 
     // Initialize 0 deltas for players who didn't gain points
@@ -284,6 +299,8 @@ export class DetectiveClubService {
     const currentIndex = playerIds.indexOf(state.informerId!);
     if (currentIndex !== -1) {
       nextInformerId = playerIds[(currentIndex + 1) % playerIds.length]!;
+    } else if (playerIds.length > 0) {
+      nextInformerId = playerIds[0]!;
     }
 
     // Assign new roles
@@ -291,7 +308,14 @@ export class DetectiveClubService {
     const randomConspiratorIndex = Math.floor(Math.random() * nonInformerPlayers.length);
     const nextConspiratorId = nonInformerPlayers[randomConspiratorIndex]!;
 
+    if (!state.discardPile) state.discardPile = [];
+
     Object.values(state.players).forEach((p: DetectiveClubPlayer) => {
+      // Move played cards to discard pile before clearing
+      if (p.playedCards && p.playedCards.length > 0) {
+        state.discardPile!.push(...p.playedCards);
+      }
+
       p.role = DetectiveClubRole.DETECTIVE;
       if (p.id === nextInformerId) p.role = DetectiveClubRole.INFORMER;
       if (p.id === nextConspiratorId) p.role = DetectiveClubRole.CONSPIRATOR;
@@ -300,8 +324,6 @@ export class DetectiveClubService {
       // Refill hand to 5 if it isn't (it should be 5 because we draw after play, but let's be safe)
       while (p.hand.length < 5) this.drawCards(state, p, 1);
       
-      // All cards that were played this game should already be in discardPile.
-      // But let's actually make sure players keep their hands and nextRound logic does not reset them improperly
       p.playedCards = [];
       p.votedFor = null;
     });

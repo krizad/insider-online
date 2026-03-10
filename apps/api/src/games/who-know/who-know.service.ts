@@ -135,6 +135,9 @@ export class WhoKnowService {
   submitVote(room: RoomState, voterId: string, targetId: string): RoomState | null {
     if (room.status !== RoomStatus.VOTING) return null;
 
+    const voter = room.players.find(p => p.socketId === voterId);
+    if (!voter || voter.role === Role.Host) return null;
+
     if (!room.votes) room.votes = {};
     room.votes[voterId] = targetId;
 
