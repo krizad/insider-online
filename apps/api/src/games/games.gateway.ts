@@ -533,4 +533,17 @@ export class GamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.emit(SOCKET_EVENTS.ERROR, { message: 'Invalid vote' });
     }
   }
+
+  @SubscribeMessage(SOCKET_EVENTS.DETECTIVE_CLUB_NEXT_ROUND)
+  handleDetectiveClubNextRound(
+    @MessageBody() data: { code: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = this.gamesService.detectiveClubNextRound(data.code, client.id);
+    if (room) {
+      this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+    } else {
+      client.emit(SOCKET_EVENTS.ERROR, { message: 'Not authorized to move to next round' });
+    }
+  }
 }

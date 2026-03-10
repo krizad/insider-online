@@ -354,7 +354,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   detectiveClubNextRound: () => {
     const { socket, room } = get();
     if (socket && room) {
-      socket.emit(SOCKET_EVENTS.RESET_GAME, { code: room.code }); // Maps to resetGame which maps to detectiveClubService.nextRound wait no let's use what I defined... wait I did not add it to socket constants...
+      socket.emit(SOCKET_EVENTS.DETECTIVE_CLUB_NEXT_ROUND, { code: room.code });
     }
   }
 }));

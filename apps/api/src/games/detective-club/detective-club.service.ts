@@ -1,4 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import {
   RoomState,
   RoomStatus,
@@ -8,14 +10,45 @@ import {
   DetectiveClubPlayer,
 } from '@repo/types';
 
-const TOTAL_CARDS = 20; // We currently have 20 card images.
-
 @Injectable()
 export class DetectiveClubService {
+  private readonly logger = new Logger(DetectiveClubService.name);
+  private availableCards: string[] = [];
+
+  constructor() {
+    this.loadAvailableCards();
+  }
+
+  private loadAvailableCards() {
+    try {
+      // Adjusted path to map to the Next.js public directory from the API service
+      const imagesDir = path.join(process.cwd(), '..', 'web', 'public', 'images', 'detective-club');
+      if (fs.existsSync(imagesDir)) {
+        const files = fs.readdirSync(imagesDir);
+        this.availableCards = files.filter(file => 
+          file.toLowerCase().endsWith('.jpg') || 
+          file.toLowerCase().endsWith('.png') || 
+          file.toLowerCase().endsWith('.jpeg')
+        );
+        this.logger.log(`Loaded ${this.availableCards.length} detective club cards from ${imagesDir}`);
+      } else {
+        this.logger.warn(`Detective club images directory not found at ${imagesDir}`);
+      }
+    } catch (error) {
+      this.logger.error('Failed to load detective club cards', error);
+    }
+  }
   private getRandomCard(): string {
-    const randomNum = Math.floor(Math.random() * TOTAL_CARDS) + 1;
-    // We will use local paths as requested by user.
-    return `/images/detective-club/${randomNum}.jpg`;
+    if (this.availableCards.length === 0) {
+      // Fallback if directory reading failed or empty
+      const randomNum = Math.floor(Math.random() * 76) + 1;
+      const paddedNum = randomNum.toString().padStart(3, '0');
+      return `/images/detective-club/card_${paddedNum}.jpg`;
+    }
+
+    const randomIndex = Math.floor(Math.random() * this.availableCards.length);
+    const filename = this.availableCards[randomIndex];
+    return `/images/detective-club/${filename}`;
   }
 
   private generateHand(size: number): string[] {

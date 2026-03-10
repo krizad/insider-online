@@ -32,7 +32,7 @@ export function SetupPhase() {
                 key={`hand-${idx}`}
                 className="relative flex-shrink-0 w-24 h-36 sm:w-32 sm:h-48 rounded-xl overflow-hidden border-2 border-slate-700 shadow-md transform hover:scale-105 transition-transform"
               >
-                <img src={cardUrl} alt={`Card ${idx + 1}`} className="w-full h-full object-cover" />
+                <img src={cardUrl} alt={`Card ${idx + 1}`} className="w-full h-full object-cover border-4 border-white rounded-lg" />
               </div>
             ))}
           </div>

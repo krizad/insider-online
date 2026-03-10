@@ -67,6 +67,7 @@ export const SOCKET_EVENTS = {
   DETECTIVE_CLUB_PLAY_CARD: "detective_club_play_card",
   DETECTIVE_CLUB_NEXT_PHASE: "detective_club_next_phase",
   DETECTIVE_CLUB_VOTE: "detective_club_vote",
+  DETECTIVE_CLUB_NEXT_ROUND: "detective_club_next_round",
 } as const;
 
 export interface UserState {

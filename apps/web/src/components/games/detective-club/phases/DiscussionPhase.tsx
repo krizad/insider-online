@@ -36,7 +36,7 @@ export function DiscussionPhase() {
                 <div className="flex gap-2 min-h-[140px]">
                   {player.playedCards.map((cardUrl, idx) => (
                     <div key={idx} className="relative w-24 h-32 sm:w-28 sm:h-40 rounded-lg overflow-hidden border-2 border-slate-700 shadow-md">
-                      <img src={cardUrl} alt="Played Card" className="w-full h-full object-cover" />
+                      <img src={cardUrl} alt="Played Card" className="w-full h-full object-cover border-4 border-white rounded-lg" />
                     </div>
                   ))}
                 </div>

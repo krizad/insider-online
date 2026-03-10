@@ -48,7 +48,7 @@ export function PlayingPhase() {
                 <div className="flex gap-2 min-h-[140px]">
                   {player.playedCards.map((cardUrl, idx) => (
                     <div key={idx} className="relative w-20 h-28 sm:w-24 sm:h-32 rounded-lg overflow-hidden border-2 border-slate-700 shadow-md transform hover:scale-105 transition-transform cursor-pointer">
-                      <img src={cardUrl} alt="Played Card" className="w-full h-full object-cover" />
+                      <img src={cardUrl} alt="Played Card" className="w-full h-full object-cover border-4 border-white rounded-lg" />
                     </div>
                   ))}
                   {/* Empty slots for missing plays */}
@@ -84,7 +84,7 @@ export function PlayingPhase() {
                   : 'border-slate-700 opacity-60 cursor-not-allowed grayscale-[30%]'
               }`}
             >
-              <img src={cardUrl} alt="Hand Card" className="w-full h-full object-cover" />
+              <img src={cardUrl} alt="Hand Card" className="w-full h-full object-cover border-4 border-white rounded-lg" />
               {isMyTurn && (
                 <div className="absolute inset-0 bg-indigo-900/0 group-hover:bg-indigo-900/40 transition-colors flex items-center justify-center backdrop-blur-[0px] group-hover:backdrop-blur-[2px]">
                    <span className="opacity-0 group-hover:opacity-100 bg-indigo-600 text-white text-xs font-black uppercase tracking-wider px-3 py-1.5 rounded-lg shadow-lg transform scale-90 group-hover:scale-100 transition-all">Play Card</span>
