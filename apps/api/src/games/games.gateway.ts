@@ -546,4 +546,71 @@ export class GamesGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.emit(SOCKET_EVENTS.ERROR, { message: 'Not authorized to move to next round' });
     }
   }
+
+  // --- Detective Math Actions ---
+  
+  @SubscribeMessage(SOCKET_EVENTS.DETECTIVE_MATH_SUBMIT_NUMBER)
+  handleDetectiveMathSubmitNumber(
+    @MessageBody() data: { code: string; targetNumber: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = this.gamesService.detectiveMathSubmitNumber(data.code, client.id, data.targetNumber);
+    if (room) {
+      this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+    } else {
+      client.emit(SOCKET_EVENTS.ERROR, { message: 'Cannot submit target number' });
+    }
+  }
+
+  @SubscribeMessage(SOCKET_EVENTS.DETECTIVE_MATH_PLAY_CARD)
+  handleDetectiveMathPlayCard(
+    @MessageBody() data: { code: string; cardIndex: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = this.gamesService.detectiveMathPlayCard(data.code, client.id, data.cardIndex);
+    if (room) {
+      this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+    } else {
+      client.emit(SOCKET_EVENTS.ERROR, { message: 'Invalid card play' });
+    }
+  }
+
+  @SubscribeMessage(SOCKET_EVENTS.DETECTIVE_MATH_NEXT_PHASE)
+  handleDetectiveMathNextPhase(
+    @MessageBody() data: { code: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = this.gamesService.detectiveMathNextPhase(data.code, client.id);
+    if (room) {
+      this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+    } else {
+      client.emit(SOCKET_EVENTS.ERROR, { message: 'Cannot move to next phase' });
+    }
+  }
+
+  @SubscribeMessage(SOCKET_EVENTS.DETECTIVE_MATH_VOTE)
+  handleDetectiveMathVote(
+    @MessageBody() data: { code: string; targetId: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = this.gamesService.detectiveMathVote(data.code, client.id, data.targetId);
+    if (room) {
+      this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+    } else {
+      client.emit(SOCKET_EVENTS.ERROR, { message: 'Invalid vote' });
+    }
+  }
+
+  @SubscribeMessage(SOCKET_EVENTS.DETECTIVE_MATH_NEXT_ROUND)
+  handleDetectiveMathNextRound(
+    @MessageBody() data: { code: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    const room = this.gamesService.detectiveMathNextRound(data.code, client.id);
+    if (room) {
+      this.server.to(room.code).emit(SOCKET_EVENTS.ROOM_STATE_UPDATED, room);
+    } else {
+      client.emit(SOCKET_EVENTS.ERROR, { message: 'Not authorized to move to next round' });
+    }
+  }
 }

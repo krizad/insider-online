@@ -46,6 +46,11 @@ interface GameState {
   detectiveClubNextPhase: () => void;
   detectiveClubVote: (targetId: string) => void;
   detectiveClubNextRound: () => void;
+  detectiveMathSubmitNumber: (targetNumber: number) => void;
+  detectiveMathPlayCard: (cardIndex: number) => void;
+  detectiveMathNextPhase: () => void;
+  detectiveMathVote: (targetId: string) => void;
+  detectiveMathNextRound: () => void;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -359,6 +364,41 @@ export const useGameStore = create<GameState>((set, get) => ({
     const { socket, room } = get();
     if (socket && room) {
       socket.emit(SOCKET_EVENTS.DETECTIVE_CLUB_NEXT_ROUND, { code: room.code });
+    }
+  },
+
+  detectiveMathSubmitNumber: (targetNumber: number) => {
+    const { socket, room } = get();
+    if (socket && room) {
+      socket.emit(SOCKET_EVENTS.DETECTIVE_MATH_SUBMIT_NUMBER, { code: room.code, targetNumber });
+    }
+  },
+
+  detectiveMathPlayCard: (cardIndex: number) => {
+    const { socket, room } = get();
+    if (socket && room) {
+      socket.emit(SOCKET_EVENTS.DETECTIVE_MATH_PLAY_CARD, { code: room.code, cardIndex });
+    }
+  },
+
+  detectiveMathNextPhase: () => {
+    const { socket, room } = get();
+    if (socket && room) {
+      socket.emit(SOCKET_EVENTS.DETECTIVE_MATH_NEXT_PHASE, { code: room.code });
+    }
+  },
+
+  detectiveMathVote: (targetId: string) => {
+    const { socket, room } = get();
+    if (socket && room) {
+      socket.emit(SOCKET_EVENTS.DETECTIVE_MATH_VOTE, { code: room.code, targetId });
+    }
+  },
+
+  detectiveMathNextRound: () => {
+    const { socket, room } = get();
+    if (socket && room) {
+      socket.emit(SOCKET_EVENTS.DETECTIVE_MATH_NEXT_ROUND, { code: room.code });
     }
   }
 }));

@@ -4,6 +4,7 @@ import { GobblerState } from "./gobbler-tic-tac-toe";
 import { WinningTeam, Role } from "./who-know";
 import { SoundsFishyState } from "./sounds-fishy";
 import { DetectiveClubState } from "./detective-club";
+import { DetectiveMathState } from "./detective-math";
 
 export enum RoomStatus {
   LOBBY = "LOBBY",
@@ -21,6 +22,7 @@ export enum GameType {
   GOBBLER_TIC_TAC_TOE = "GOBBLER_TIC_TAC_TOE",
   SOUNDS_FISHY = "SOUNDS_FISHY",
   DETECTIVE_CLUB = "DETECTIVE_CLUB",
+  DETECTIVE_MATH = "DETECTIVE_MATH",
 }
 
 // Socket Constants
@@ -68,6 +70,12 @@ export const SOCKET_EVENTS = {
   DETECTIVE_CLUB_NEXT_PHASE: "detective_club_next_phase",
   DETECTIVE_CLUB_VOTE: "detective_club_vote",
   DETECTIVE_CLUB_NEXT_ROUND: "detective_club_next_round",
+  // Detective Math specific events
+  DETECTIVE_MATH_SUBMIT_NUMBER: "detective_math_submit_number",
+  DETECTIVE_MATH_PLAY_CARD: "detective_math_play_card",
+  DETECTIVE_MATH_NEXT_PHASE: "detective_math_next_phase",
+  DETECTIVE_MATH_VOTE: "detective_math_vote",
+  DETECTIVE_MATH_NEXT_ROUND: "detective_math_next_round",
 } as const;
 
 export interface UserState {
@@ -106,6 +114,7 @@ export interface RoomState {
   gobblerState?: GobblerState;
   soundsFishyState?: SoundsFishyState;
   detectiveClubState?: DetectiveClubState;
+  detectiveMathState?: DetectiveMathState;
 }
 
 export interface AvailableRoom {

@@ -7,6 +7,7 @@ import { RPSRules } from "./games/rps/RPSRules";
 import { LobbyRules } from "./games/LobbyRules";
 import { SoundsFishyRules } from "./games/sounds-fishy/SoundsFishyRules";
 import { DetectiveClubRules } from "./games/detective-club/DetectiveClubRules";
+import { DetectiveMathRules } from "./games/detective-math/DetectiveMathRules";
 import { useTranslate } from "@/hooks/useTranslate";
 
 interface RulesModalProps {
@@ -50,6 +51,8 @@ export function RulesModal({ defaultGameType, isGameRoom }: RulesModalProps) {
         return <SoundsFishyRules />;
       case GameType.DETECTIVE_CLUB:
         return <DetectiveClubRules />;
+      case GameType.DETECTIVE_MATH:
+        return <DetectiveMathRules />;
       default:
         return null;
     }
@@ -95,6 +98,7 @@ export function RulesModal({ defaultGameType, isGameRoom }: RulesModalProps) {
                    <button onClick={() => setActiveTab(GameType.RPS)} className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-colors ${activeTab === GameType.RPS ? 'bg-amber-500/20 text-amber-400 shadow-inner border border-amber-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}>{t('rules.modal.tabs.handDuel')}</button>
                    <button onClick={() => setActiveTab(GameType.SOUNDS_FISHY)} className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-colors ${activeTab === GameType.SOUNDS_FISHY ? 'bg-purple-500/20 text-purple-400 shadow-inner border border-purple-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}>{t('rules.modal.tabs.soundsFishy')}</button>
                    <button onClick={() => setActiveTab(GameType.DETECTIVE_CLUB)} className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-colors ${activeTab === GameType.DETECTIVE_CLUB ? 'bg-slate-500/20 text-slate-300 shadow-inner border border-slate-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}>Detective Club</button>
+                   <button onClick={() => setActiveTab(GameType.DETECTIVE_MATH)} className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-colors ${activeTab === GameType.DETECTIVE_MATH ? 'bg-indigo-500/20 text-indigo-400 shadow-inner border border-indigo-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}>Detective Math</button>
                  </div>
               </div>
             )}
