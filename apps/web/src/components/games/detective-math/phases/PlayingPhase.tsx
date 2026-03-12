@@ -23,6 +23,8 @@ export function PlayingPhase() {
     return { rank: parts[0], suit: parts[1] };
   };
 
+  const cardToPlay = confirmPlayIndex !== null && myPlayer ? myPlayer.hand[confirmPlayIndex] : null;
+
   return (
     <div className="flex-1 flex flex-col space-y-6">
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center w-full shadow-lg">
@@ -115,7 +117,7 @@ export function PlayingPhase() {
       </div>
       
       {/* Confirmation Modal */}
-      {confirmPlayIndex !== null && myPlayer && (
+      {confirmPlayIndex !== null && myPlayer && cardToPlay && (
         // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
         <div 
           className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" 
@@ -130,8 +132,8 @@ export function PlayingPhase() {
             <div className="flex justify-center mb-6">
               <div className="w-24 h-36 rounded-xl overflow-hidden border-4 border-indigo-500 shadow-lg mb-6">
                 <PlayingCard 
-                  rank={parseCard(myPlayer.hand[confirmPlayIndex]).rank} 
-                  suit={parseCard(myPlayer.hand[confirmPlayIndex]).suit} 
+                  rank={parseCard(cardToPlay).rank} 
+                  suit={parseCard(cardToPlay).suit} 
                   className="w-full h-full"
                 />
               </div>

@@ -37,12 +37,13 @@ export class DetectiveMathService {
   }
 
   startGame(room: RoomState, requesterId: string): RoomState | null {
-    if (room.players.length < 3) return null;
+    const connectedPlayers = room.players.filter((p) => p.connected !== false);
+    if (connectedPlayers.length < 3) return null;
     if (room.roomHostId !== requesterId) return null;
 
-    const shuffledPlayers = [...room.players].sort(() => 0.5 - Math.random());
-    const informer = shuffledPlayers[0];
-    const conspirator = shuffledPlayers[1];
+    const shuffledPlayers = [...connectedPlayers].sort(() => 0.5 - Math.random());
+    const informer = shuffledPlayers[0]!;
+    const conspirator = shuffledPlayers[1]!;
 
     const deck = [...this.standardDeck].sort(() => 0.5 - Math.random());
     const discardPile: string[] = [];
@@ -141,7 +142,14 @@ export class DetectiveMathService {
 
     this.drawCards(state, player, 1);
 
-    const currentIndex = state.playOrder.indexOf(playerId);
+    this.advanceTurn(room);
+
+    return room;
+  }
+
+  private advanceTurn(room: RoomState) {
+    const state = room.detectiveMathState!;
+    const currentIndex = state.playOrder.indexOf(state.activePlayerId!);
     let nextIndex = (currentIndex + 1) % state.playOrder.length;
     let nextPlayerId = state.playOrder[nextIndex];
 
@@ -164,8 +172,33 @@ export class DetectiveMathService {
     } else {
       state.activePlayerId = nextPlayerId;
     }
+  }
 
-    return room;
+  handleDisconnect(room: RoomState, disconnectedId: string) {
+    if (!room.detectiveMathState) return;
+    const state = room.detectiveMathState;
+
+    if (state.activePlayerId === disconnectedId) {
+      if (
+        state.currentPhase === DetectiveMathPhase.PLAYING_ROUND_1 ||
+        state.currentPhase === DetectiveMathPhase.PLAYING_ROUND_2
+      ) {
+        this.advanceTurn(room);
+      }
+    }
+
+    // Also check if all active players have voted
+    if (state.currentPhase === DetectiveMathPhase.VOTING) {
+      const activePlayerIds = new Set(room.players.filter(p => p.connected !== false).map((p) => p.socketId));
+      const votingPlayers = Object.values(state.players).filter(
+        (p) => p.role !== DetectiveMathRole.INFORMER && activePlayerIds.has(p.id)
+      );
+      const allVoted = votingPlayers.every((p) => p.votedFor !== null);
+
+      if (allVoted && votingPlayers.length > 0) {
+        this.calculateScore(room);
+      }
+    }
   }
 
   nextPhase(room: RoomState, requesterId: string): RoomState | null {
@@ -264,7 +297,9 @@ export class DetectiveMathService {
     const state = room.detectiveMathState;
     if (state.currentPhase !== DetectiveMathPhase.SCORING) return null;
 
-    const playerIds = room.players.map((p) => p.socketId);
+    const connectedPlayers = room.players.filter((p) => p.connected !== false);
+    const playerIds = connectedPlayers.map((p) => p.socketId);
+    
     let nextInformerId = state.informerId!;
     const currentIndex = playerIds.indexOf(state.informerId!);
     if (currentIndex !== -1) {
@@ -273,9 +308,9 @@ export class DetectiveMathService {
       nextInformerId = playerIds[0]!;
     }
 
-    const nonInformerPlayers = playerIds.filter((id) => id !== nextInformerId);
-    const randomConspiratorIndex = Math.floor(Math.random() * nonInformerPlayers.length);
-    const nextConspiratorId = nonInformerPlayers[randomConspiratorIndex]!;
+    const nonInformerPlayersIds = playerIds.filter((id) => id !== nextInformerId);
+    const randomConspiratorIndex = Math.floor(Math.random() * nonInformerPlayersIds.length);
+    const nextConspiratorId = nonInformerPlayersIds[randomConspiratorIndex]!;
 
     if (!state.discardPile) state.discardPile = [];
 
